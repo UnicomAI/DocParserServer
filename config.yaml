@@ -1,0 +1,9 @@
+default_model: mineru  # 可以是 'mineru' 或 'dolphin'
+
+models:
+  mineru:
+#    base_url: http://192.168.0.113:8001/file_parse
+    base_url: http://192.168.0.229:8000/file_parse
+  dolphin:
+    base_url: http://localhost:5001
+    endpoint: /parse
