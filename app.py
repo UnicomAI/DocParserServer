@@ -2,36 +2,22 @@ import os
 import traceback
 import uuid
 
-import yaml
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify
 from flask_cors import CORS
 from marshmallow import Schema, fields, ValidationError
 
-from models.dolphin.client import DolphinClient
 from models.mineru.client import MineruClient
-from utils.file_utils import save_file_to_local, save_file_url_to_local, extract_images_from_md, \
+from utils.file_utils import save_file_to_local, extract_images_from_md, \
     save_images_res_to_local
 from utils.monitor_utils import log_time
 
-
-# 加载配置文件
-def load_config():
-    with open('config.yaml', 'r', encoding='utf-8') as f:
-        return yaml.safe_load(f)
-config = load_config()
 
 # 初始化日志
 from utils.log_utils import setup_logger, set_trace_id, get_trace_id
 logger = setup_logger(__name__, './logs/app.log')
 
-# 初始化文档解析模型client
-model_name = config.get('default_model', 'mineru')
-if model_name == 'mineru':
-    client = MineruClient(config['models']['mineru']['base_url'])
-elif model_name == 'dolphin':
-    client = DolphinClient(config['models']['dolphin']['base_url'])
-else:
-    raise ValueError(f"Init exception. Unsupported model config: {model_name}")
+MINIO_ADDRESS = os.getenv("MINERU_ADDRESS", "http://0.0.0.0:8000/file_parse")
+client = MineruClient(MINIO_ADDRESS)
 
 # 初始化Flask应用
 app = Flask(__name__)
