@@ -49,80 +49,6 @@ def health_check():
     """服务健康检查接口"""
     return jsonify({"code": "200", "status": "healthy", "service": "doc_parser_server"})
 
-# class ModelParserSchema(Schema):
-#     file_link = fields.Str(required=True)
-#     file_name = fields.Str(required=True)
-#     extract_image = fields.Int(required=False)
-#     max_batch_size = fields.Int(required=False)
-#
-# @app.route('/rag/model_parser_url', methods=['POST'])
-# @log_time
-# def model_parser_url():
-#     """文档处理API接口
-#     接收文件上传和处理参数，返回处理结果
-#     """
-#     logger.info("test log")
-#     # 参数校验
-#     schema = ModelParserSchema()
-#     try:
-#         schema.load(request.get_json())
-#     except ValidationError as err:
-#         return jsonify(err.messages), 400
-#
-#     data = request.get_json()
-#     logger.info(f"request data is:{data}")
-#     file_link = data.get('file_link', None)
-#     file_name = data.get('file_name', None)
-#
-#     # 获取请求参数
-#     max_batch_size = 4
-#     extract_image = data.get('extract_image', 1)
-#
-#     try:
-#         # 保存文件到本地
-#         file_path = save_file_url_to_local(file_link, file_name)
-#         if not file_path:
-#             return jsonify({
-#                 "code": "500",
-#                 "status": "failed",
-#                 "message": f"File download failed. File_link: {file_link}, file_name: {file_name}",
-#                 "content": "",
-#                 "trace_id": get_trace_id()
-#             }), 500
-#         logger.info(f"File downloaded and saved to {file_path}")
-#         # 根据配置调模型
-#         # response = client.parse_file(file_path)
-#         # logger.info(f"response is:{response}")
-#         # md_content = response.get("123")
-#
-#         # if extract_image == 1 and md_content != "":
-#         #     md_content = extract_images_from_md(md_content)
-#         #     # 保存处理后的 Markdown 文件
-#         #     base, extension = os.path.splitext("./data/123.md")
-#         #     processed_md_path = f"{base}_processed{extension}"
-#         #     with open(processed_md_path, "w", encoding="utf-8") as processed_md_file:
-#         #         processed_md_file.write(md_content)
-#         #     logger.info(f"Processed Markdown file saved to {processed_md_path}")
-#         # 返回处理结果
-#         return jsonify({
-#             "code": "200",
-#             "status": "success",
-#             "message": "文档处理完成",
-#             "content": "coming soon",
-#             "trace_id": get_trace_id()
-#         })
-#
-#     except Exception as e:
-#         # 返回处理结果
-#         return jsonify({
-#             "code": "500",
-#             "status": "failed",
-#             "message": str(e),
-#             "content": "",
-#             "trace_id": get_trace_id()
-#         }), 500
-
-
 class ModelParserFileSchema(Schema):
     file_name = fields.Str(required=True, error_messages={"required": "file_name is required"})
     extract_image = fields.Int(required=False)
@@ -161,14 +87,12 @@ def model_parser_file():
             "trace_id": get_trace_id()
         }), 400
 
-    # data = request.get_json()
     logger.info(f"request data is: {data}")
     file_name = data.get('file_name', None)
 
     # 获取请求参数
     extract_image = data.get('extract_image', 1)
     file_path = ""
-    parse_dir = ""
     try:
         # 保存文件到本地
         file_path = save_file_to_local(file, file_name)
@@ -186,18 +110,11 @@ def model_parser_file():
         results = response["results"][file_name.rsplit('.', 1)[0]]
         md_content = results.get('md_content')
         save_images_res_to_local(file_name, results)
-        #返回图片链接目录，返回json文件
         if extract_image and md_content:
             logger.info(f"extracting images for file: {file_path}")
             md_content = extract_images_from_md(md_content,"./data/images")
-        # 返回处理结果
-        return jsonify({
-            "code": "200",
-            "status": "success",
-            "message": "文档处理完成",
-            "content": md_content,
-            "trace_id": get_trace_id()
-        })
+
+        return jsonify({"code": "200","status": "success","message": "文档处理完成","content": md_content,"trace_id": get_trace_id()})
 
     except Exception as e:
         # 获取当前的堆栈跟踪信息
@@ -207,8 +124,7 @@ def model_parser_file():
         # 记录详细的错误信息，包括 trace_id 和堆栈跟踪
         logger.error(f"Error occurred. Trace ID: {trace_id}. Exception: {e}. Stack Trace: {stack_trace}")
         # 返回处理结果
-        return jsonify({
-            "code": "500",
+        return jsonify({"code": "500",
             "status": "failed",
             "message": str(e),
             "content": "",
@@ -216,7 +132,10 @@ def model_parser_file():
         }), 500
     finally:
         # 删除存的原始文件
-        os.remove(file_path)
+        try:
+            os.remove(file_path)
+        except OSError as e:
+            print(f"删除文件失败: {e}")
 
 @app.route('/rag/test', methods=['GET'])
 def test():

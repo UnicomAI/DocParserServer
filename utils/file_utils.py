@@ -1,15 +1,19 @@
 import base64
 import os
 import re
-import shutil
-
 import requests
+import yaml
 
 from utils.log_utils import setup_logger
+from utils.minio_utils import upload_file_to_minio
 
 logger = setup_logger(__name__, './logs/app.log')
 
 data_dirs = ['./data/raw', './data/processed']
+
+with open("config.yaml", "r") as f:
+    config = yaml.safe_load(f)
+object_storage_config = config["object_storage"]
 
 def upload_to_oss(file_path, bucket_name, access_token):
     """
@@ -73,10 +77,9 @@ def extract_images_from_md(md_content, image_dir):
             image_path = os.path.join(os.path.dirname(image_dir), image_link)
             logger.info(f"extracting images from md content. image_path: {image_path}")
             if os.path.exists(image_path):
-                # 上传图片到 OSS
-                download_link = upload_to_oss(image_path, "doc-rag-public", "<your-api-key>")
+                # 上传图片到 OS
+                download_link = upload_file_to_minio(image_path)
                 if download_link:
-                    # 替换 Markdown 中的图片链接为 OSS 链接
                     md_content = md_content.replace(image_link, download_link)
                 else:
                     logger.info(f"Failed to upload image: {image_path}")
