@@ -1,4 +1,3 @@
-# import logging
 import os
 import traceback
 import uuid
@@ -15,8 +14,6 @@ from utils.file_utils import save_file_to_local, save_file_url_to_local, extract
 from utils.monitor_utils import log_time
 
 
-# from logging.handlers import RotatingFileHandler
-
 # 加载配置文件
 def load_config():
     with open('config.yaml', 'r', encoding='utf-8') as f:
@@ -25,7 +22,6 @@ config = load_config()
 
 # 初始化日志
 from utils.log_utils import setup_logger, set_trace_id, get_trace_id
-
 logger = setup_logger(__name__, './logs/app.log')
 
 # 初始化文档解析模型client
@@ -132,8 +128,6 @@ class ModelParserFileSchema(Schema):
     extract_image = fields.Int(required=False)
     max_batch_size = fields.Int(required=False)
 
-
-
 @app.route('/rag/model_parser_file', methods=['POST'])
 @log_time
 def model_parser_file():
@@ -195,7 +189,6 @@ def model_parser_file():
         #返回图片链接目录，返回json文件
         if extract_image and md_content:
             logger.info(f"extracting images for file: {file_path}")
-            # md_content = extract_images_from_md(md_content, os.path.join(os.path.dirname(os.path.abspath(__file__)),"data/images"))
             md_content = extract_images_from_md(md_content,"./data/images")
         # 返回处理结果
         return jsonify({
@@ -227,16 +220,7 @@ def model_parser_file():
 
 @app.route('/rag/test', methods=['GET'])
 def test():
-    file_path = r'./output.zip'
-    if not os.path.isfile(file_path):
-        logger.info(f"文件不存在：{file_path}")
-        return "文件不存在", 404
-    try:
-        # 直接返回文件流
-        return send_file(file_path, as_attachment=True)
-    except Exception as e:
-        logger.info(f"请求异常：{e}")
-        return "请求异常", 500
+    return True
 
 
 
