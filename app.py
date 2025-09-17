@@ -93,6 +93,15 @@ def model_parser_file():
         logger.info(f"File downloaded and saved to {file_path}")
         # 根据配置调模型
         response = client.parse_file(file_path)
+        # 无模型mock返回测试
+        # response = {
+        #     "results": {
+        #         "zc2023_P658": {
+        #             "md_content": "# 元景-PDF文档解析测试文件\n\n欢迎使用万物智能体开发平台。![](test.png)。",
+        #             "images": {}
+        #         }
+        #     }
+        # }
         results = response["results"][file_name.rsplit('.', 1)[0]]
         md_content = results.get('md_content')
         save_images_res_to_local(file_name, results)

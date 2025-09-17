@@ -2,7 +2,7 @@
 
 # 定义端口号和应用路径
 PORT=8083
-APP_PATH="/home/jovyan/lzy/doc_parser_server/app.py"
+APP_PATH="/app/DocParserServer-main/app.py"
 
 # 检查端口是否被占用
 PID=$(lsof -t -i:$PORT)
@@ -17,3 +17,4 @@ fi
 echo "正在后台启动应用..."
 nohup python $APP_PATH > app_start.log 2>&1 &
 echo "应用已在后台启动，日志输出到 app_start.log"
+sleep 99999d

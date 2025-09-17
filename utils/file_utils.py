@@ -2,7 +2,6 @@ import base64
 import os
 import re
 import requests
-import yaml
 
 from utils.log_utils import setup_logger
 from utils.minio_utils import upload_file_to_minio
@@ -11,9 +10,6 @@ logger = setup_logger(__name__, './logs/app.log')
 
 data_dirs = ['./data/raw', './data/processed']
 
-with open("config.yaml", "r") as f:
-    config = yaml.safe_load(f)
-object_storage_config = config["object_storage"]
 
 def upload_to_oss(file_path, bucket_name, access_token):
     """
@@ -65,13 +61,14 @@ def fulfill_image_title(md_content, n = 3):
 
 def extract_images_from_md(md_content, image_dir):
     # 提取图片
-    logger.info(f"extracting images from md content. image_dir: {image_dir}")
     if not os.path.exists(image_dir):
+        logger.info(f"extracting images from md content. image_dir: {image_dir}")
         return md_content
+    logger.info(f"start extracting images.")
     md_content = fulfill_image_title(md_content)
     # 提取所有图片链接
     image_links = re.findall(r'!\[.*?\]\((.*?)\)', md_content)
-    # md_content = re.sub(r'!\[Figure\]\(figures/', '![image](figures/', md_content)
+    logger.info(f"size of images links: {len(image_links)}.")
     for image_link in image_links:
         if image_link.startswith("images/"):
             image_path = os.path.join(os.path.dirname(image_dir), image_link)
@@ -85,7 +82,6 @@ def extract_images_from_md(md_content, image_dir):
                     logger.info(f"Failed to upload image: {image_path}")
             else:
                 logger.info(f"Image file not found: {image_path}")
-    print(f"md_content: {md_content}")
     return md_content
 
 def save_file_url_to_local(file_link, file_name):
