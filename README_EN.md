@@ -67,6 +67,22 @@ It also supports cloud trial and privatized deployment. For open-source deployme
 docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.1-20250925-arm64
 # x86_64
 docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.1-20250925-amd64
+
+# check image is existed
+docker images|grep doc_parser_server
+# docker run start the container
+# BFF_SERVICE_MINIO will be avaliable once deploying wanwu platform.
+docker run -itd --name doc_parser \
+-p 8083:8083 \
+-e MINIO_ADDRESS="192.168.0.1:9000" \
+-e MINIO_ACCESS_KEY="root" \
+-e MINIO_SECRET_KEY="Minio_SK" \
+-e BFF_SERVICE_MINIO="http://192.168.0.1:6668/v1/api/deploy/info" \
+-e MINERU_ADDRESS="http://127.0.0.1:8000/file_parse" \
+-e MINERU_MODEL_SOURCE=local \
+-e DOC_PARSER_SERVER_PORT=8083 \
+doc_parser_server:1.1 \
+/app/start_all.sh
 ```
 
 ### Installation via Source Code
