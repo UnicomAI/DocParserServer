@@ -7,7 +7,7 @@
     <a href="#features">Features</a> •
     <a href="#local-deployment">Local Deployment</a> •
     <a href="#data-protocol">Data Protocol</a> •
-    <a href="#using-the-document-parsing-service">Using the Service</a> •
+    <a href="#how-to-use">how to use</a> •
     <a href="#contact-us">Contact Us</a> 
   </p>
 
