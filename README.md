@@ -12,7 +12,7 @@
   </p>
 
   <p>
-    <img alt="License" src="https://img.shields.io/badge/license-apache2.0-blue.svg">
+    <img alt="License: AGPL-3.0" src="https://img.shields.io/badge/license-AGPL--3.0-blue.svg">
     <img alt="Python Version" src="https://img.shields.io/badge/python-%3E%3D%203.10-blue">
     <a href="https://github.com/UnicomAI/DocParserServer/releases">
       <img alt="Release Notes" src="https://img.shields.io/github/v/release/UnicomAI/DocParserServer?label=Release&logo=github&color=green">
@@ -24,9 +24,8 @@
   </p>
 </div>
 
-&emsp;&emsp;**元景万悟智能体平台**([github项目地址](https://github.com/UnicomAI/wanwu/edit/main/README_CN.md))是一款面向**企业级**场景的**一站式**、**商用license友好**的**智能体开发平台**，致力于为企业提供安全、高效、合规的一站式AI解决方案。我们以"技术开放、生态共建"为核心理念，通过整合大语言模型、业务流程自动化等前沿技术，构建了覆盖模型全生命周期管理、MCP、联网检索、智能体快速开发、企业知识库建设、复杂工作流编排等完整功能体系的AI工程化平台。平台采用模块化架构设计，支持灵活的功能扩展和二次开发，在确保企业数据安全和隐私保护的同时，大幅降低了AI技术的应用门槛。无论是中小型企业快速构建智能化应用，还是大型企业实现复杂业务场景的智能化改造，元景万悟智能体平台都能提供强有力的技术支撑，助力企业加速数字化转型进程，实现降本增效和业务创新。
 
-&emsp;&emsp;**万悟PDF文档解析服务**专注于 PDF 文档解析。它能精准将 PDF 转化为 Markdown 格式，还可高效提取文档里的表格、公式、图片等复杂多模态知识。借助该服务，能强化对 PDF 内容的理解与提取能力，进而显著提升万悟平台在 RAG 知识问答、智能体知识库节点等知识类场景中的应用效果。
+&emsp;&emsp;**万悟PDF文档解析服务**是一款面向**企业级**场景的通用文档解析服务，通过引入AI能力和多种业界领先的视觉文档解析模型，精准、高效的将各类文档转化为 Markdown 纯文本、结构化格式，支持提取文档中的多模态元素，例如表格、公式、图片等，将复杂多模态知识转换为结构化的表示有助于大语言模型对这些多模态知识的理解。借助该服务，预先将各类非结构化文档提取内容成文本信息后，再把结构化的文本信息写入知识库进行向量索引构建，可以显著提升RAG知识问答、智能体知识库节点等知识问答场景的效果。该服务依赖**元景万悟智能体平台**([github项目地址](https://github.com/UnicomAI/wanwu/edit/main/README_CN.md))，需要与平台共同使用。目前服务仅支持 PDF 类型的文档，未来将支持DOC、DOCX、PNG、PPT、PPTX等非结构化文档。目前已经支持mineru解析，未来将支持如Dolphin或markitdown等更多文档解析模型能力。
 
 ------
 
@@ -62,6 +61,7 @@
 ## 本地部署
 
 ### 通过镜像安装(推荐)
+镜像中包含python，conda, 运行服务所需要的依赖，以及MinerU服务和模型。
 ```bash
 # arm64
 docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.1-20250925-arm64
@@ -203,7 +203,10 @@ curl --location 'https:/{ip:127.0.0.1}:{port:8083}/rag/model_parser_file' \
 ```bash
 {
   "code": "200",
-  "content": "2\n\n![\u56fe1\u7efc\u5408\u7a7a\u6c14\u7cfb\u7edf\u63a7\u5236\u76d2\u5b89\u88c5 \uff0d\u7535\u5b50\u7535\u6c14\u8bbe\u5907\u67b6(\u51714\u5f20 \u7b2c1\u5f20)](https://obs-nmhhht6.cucloud.cn/doc-rag-public/tmps34xnwa4.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=7123F0A077C64FDFA2DE87BAAF6D13363776%2F20250912%2Fcn-huhehaote-6%2Fs3%2Faws4_request&X-Amz-Date=20250912T091253Z&X-Amz-Expires=86400&X-Amz-SignedHeaders=host&X-Amz-Signature=40005a32ee961863c9a82f602a0dd01be4f2fdedb7e8d29daf137e9fd2e3e448) 220",
+  "content": "# 1.4.4 角接焊缝 角焊缝的焊喉高度 K 应不小于按下列公式计算所得之值：
+  $$
+K = { \sqrt { 2 } } h \quad \mathrm { ~ mm }
+$$",
   "message": "文档处理完成",
   "status": "success",
   "trace_id": "df916082-072f-4019-a517-0ebb46077263"
