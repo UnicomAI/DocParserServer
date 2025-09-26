@@ -14,7 +14,7 @@
   <p>
     <img alt="License" src="https://img.shields.io/badge/license-apache2.0-blue.svg">
     <img alt="Python Version" src="https://img.shields.io/badge/python-%3E%3D%203.10-blue">
-    <a href="https://github.com/UnicomAI/wanwu/releases">
+    <a href="https://github.com/UnicomAI/DocParserServer/releases">
       <img alt="Release Notes" src="https://img.shields.io/github/v/release/UnicomAI/DocParserServer?label=Release&logo=github&color=green">
     </a>
   </p>
