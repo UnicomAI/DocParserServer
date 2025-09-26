@@ -1,4 +1,4 @@
-# 元景万悟智能体平台-PDF文档解析服务
+# 元景万悟智能体平台-文档解析服务
 
 <div align="center">
   <img src="https://github.com/user-attachments/assets/6ceb4269-a861-4545-84db-bad322592156" style="width:45%; height:auto;" />
