@@ -9,6 +9,6 @@ kill -9 $(lsof -t -i:8000)
 
 # 后台启动 Flask 应用
 echo "Starting Fast API..."
-nohup python fast_api.py > $LOG_FILE 2>&1 &
+nohup python /app/MinerU/mineru/cli/fast_api.py > $LOG_FILE 2>&1 &
 
 echo "Fast API started. Check $LOG_FILE for logs."

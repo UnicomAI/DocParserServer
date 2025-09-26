@@ -16,8 +16,8 @@ from utils.monitor_utils import log_time
 from utils.log_utils import setup_logger, set_trace_id, get_trace_id
 logger = setup_logger(__name__, './logs/app.log')
 
-MINIO_ADDRESS = os.getenv("MINERU_ADDRESS", "http://0.0.0.0:8000/file_parse")
-client = MineruClient(MINIO_ADDRESS)
+MINERU_ADDRESS = os.getenv("MINERU_ADDRESS", "http://127.0.0.1:8000/file_parse")
+client = MineruClient(MINERU_ADDRESS)
 
 # 初始化Flask应用
 app = Flask(__name__)
@@ -139,4 +139,5 @@ def test():
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8083, debug=True, use_reloader=False)
+    app_port = int(os.getenv("DOC_PARSER_SERVER_PORT", 8083))
+    app.run(host='0.0.0.0', port=app_port, debug=True, use_reloader=False)
