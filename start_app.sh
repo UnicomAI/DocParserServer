@@ -17,4 +17,3 @@ fi
 echo "正在后台启动应用..."
 nohup python $APP_PATH > app_start.log 2>&1 &
 echo "应用已在后台启动，日志输出到 app_start.log"
-sleep 99999d
