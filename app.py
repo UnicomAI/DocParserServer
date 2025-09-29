@@ -56,6 +56,14 @@ def model_parser_file():
                 "content": "",
                 "trace_id": get_trace_id()
             }), 400
+    if not file.filename.endswith('.pdf'):
+        return jsonify({
+            "code": "400",
+            "status": "failed",
+            "message": "只允许上传PDF文件",
+            "content": "",
+            "trace_id": get_trace_id()
+        }), 400
 
     schema = ModelParserFileSchema()
     data = request.form.to_dict()
@@ -75,7 +83,23 @@ def model_parser_file():
 
     logger.info(f"request data is: {data}")
     file_name = data.get('file_name', None)
-
+    if not file_name.lower().endswith('.pdf'):
+        return jsonify({
+            "code": "400",
+            "status": "failed",
+            "message": "文件名必须以.pdf结尾",
+            "content": "",
+            "trace_id": get_trace_id()
+        }), 400
+    normalized_path = os.path.normpath(file_name)
+    if normalized_path.startswith(('..', '/', '\\')):  # 防止跨目录访问
+        return jsonify({
+            "code": "400",
+            "status": "failed",
+            "message": "文件名包含非法字符: ..或/或\\",
+            "content": "",
+            "trace_id": get_trace_id()
+        }), 400
     # 获取请求参数
     extract_image = data.get('extract_image', 1)
     file_path = ""
