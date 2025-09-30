@@ -14,7 +14,7 @@ MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY")
 if MINIO_ADDRESS is None or MINIO_ACCESS_KEY is None or MINIO_SECRET_KEY is None:
     MINIO_ADDRESS = "minio-wanwu:9000" #192.168.0.21:9000
     MINIO_ACCESS_KEY = "root"
-    MINIO_SECRET_KEY = "V5EMfXAuCCx3JkjTG4jQ"
+    MINIO_SECRET_KEY = "your_sk"
 
 logger.info(f"minio address: {MINIO_ADDRESS}")
 logger.info(f"minio access key: {MINIO_ACCESS_KEY}")
