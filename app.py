@@ -19,6 +19,8 @@ logger = setup_logger(__name__, './logs/app.log')
 MINERU_ADDRESS = os.getenv("MINERU_ADDRESS", "http://127.0.0.1:8000/file_parse")
 client = MineruClient(MINERU_ADDRESS)
 
+ALLOWED_FILE_EXTENSIONS = (".pdf", ".png", ".jpeg", ".jpg", ".webp", ".gif")
+
 # 初始化Flask应用
 app = Flask(__name__)
 CORS(app)  # 允许跨域请求
@@ -38,7 +40,6 @@ def health_check():
 class ModelParserFileSchema(Schema):
     file_name = fields.Str(required=True, error_messages={"required": "file_name is required"})
     extract_image = fields.Int(required=False)
-    max_batch_size = fields.Int(required=False)
 
 @app.route('/rag/model_parser_file', methods=['POST'])
 @log_time
@@ -52,15 +53,15 @@ def model_parser_file():
         return jsonify({
                 "code": "400",
                 "status": "failed",
-                "message": f"no file part",
+                "message": f"请上传文件",
                 "content": "",
                 "trace_id": get_trace_id()
             }), 400
-    if not file.filename.endswith('.pdf'):
+    if not file.filename.endswith(ALLOWED_FILE_EXTENSIONS):
         return jsonify({
             "code": "400",
             "status": "failed",
-            "message": "只允许上传PDF文件",
+            "message": "上传的文件类型错误",
             "content": "",
             "trace_id": get_trace_id()
         }), 400
@@ -83,11 +84,11 @@ def model_parser_file():
 
     logger.info(f"request data is: {data}")
     file_name = data.get('file_name', None)
-    if not file_name.lower().endswith('.pdf'):
+    if not file_name.lower().endswith(ALLOWED_FILE_EXTENSIONS):
         return jsonify({
             "code": "400",
             "status": "failed",
-            "message": "文件名必须以.pdf结尾",
+            "message": "上传的文件扩展名错误",
             "content": "",
             "trace_id": get_trace_id()
         }), 400
