@@ -25,7 +25,7 @@
 </div>
 
 
-&emsp;&emsp;**万悟文档解析服务**是一款面向**企业级**场景的通用文档解析服务，通过引入AI能力和多种业界领先的视觉文档解析模型，精准、高效的将各类文档转化为 Markdown 结构化标准格式，支持提取文档中的多模态元素，例如表格、公式、图片等，将复杂多模态知识转换为结构化的表示有助于大语言模型对这些多模态知识的理解。借助该服务，预先将各类非结构化文档提取内容成文本信息后，再把结构化的文本信息写入知识库进行向量索引构建，可以显著提升RAG知识问答、智能体知识库节点等知识问答场景的效果。该服务依赖**元景万悟智能体平台**([github项目地址](https://github.com/UnicomAI/wanwu/edit/main/README_CN.md))，需要与平台共同使用。目前服务已支持 pdf, png, jpeg, jpg, webp, gif 类型的文档，未来将支持DOC、DOCX、PPT、PPTX、CSV等非结构化文档。目前已经支持mineru解析，未来将支持如Dolphin或markitdown等更多文档解析模型能力，敬请期待！
+&emsp;&emsp;**万悟文档解析服务**是一款面向**企业级**场景的通用文档解析服务，通过引入AI能力和多种业界领先的视觉文档解析模型，精准、高效的将各类文档转化为 Markdown 结构化标准格式，支持提取文档中的多模态元素，例如表格、公式、图片等，将复杂多模态知识转换为结构化的表示有助于大语言模型对这些多模态知识的理解。借助该服务，预先将各类非结构化文档提取内容成文本信息后，再把结构化的文本信息写入知识库进行向量索引构建，可以显著提升RAG知识问答、智能体知识库节点等知识问答场景的效果。该服务依赖**元景万悟智能体平台**([github项目地址](https://github.com/UnicomAI/wanwu/edit/main/README_CN.md))，需要与平台共同使用。目前服务已支持 pdf, png, jpeg, jpg, webp, gif, doc、docx、ppt、pptx类型的文档。未来将持续扩展支持文档的类型，如html等。目前已经支持mineru解析，未来将支持如Dolphin或markitdown等更多文档解析模型能力，敬请期待！
 
 ------
 
@@ -62,29 +62,49 @@
 
 ### 通过镜像安装(推荐)
 镜像中包含python，conda, 运行服务所需要的依赖，以及MinerU服务和模型。
+
+下载镜像：
 ```bash
 # arm64
-docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.1-20250925-arm64
+docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-arm64
 # x86_64
-docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.1-20250925-amd64
+docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-amd64
 
 # 确认是否有镜像
 docker images|grep doc_parser_server
-# docker run启动容器
+```
+
+docker run启动容器：
+```bash
 # BFF_SERVICE_MINIO依赖万悟平台的部署，部署后可以获取到这个接口
 docker run -itd --name doc_parser \
 -p 8083:8083 \
--e MINIO_ADDRESS="192.168.0.1:9000" \
+--network wanwu-net \
+--restart always \
+-e MINIO_ADDRESS="minio-wanwu:9000" \
 -e MINIO_ACCESS_KEY="root" \
--e MINIO_SECRET_KEY="Minio_SK" \
--e BFF_SERVICE_MINIO="http://192.168.0.1:6668/v1/api/deploy/info" \
+-e MINIO_SECRET_KEY="your_sk" \
+-e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \
 -e MINERU_ADDRESS="http://127.0.0.1:8000/file_parse" \
--e MINERU_MODEL_SOURCE=local \
+-e MINERU_MODEL_SOURCE=modelscope \
 -e DOC_PARSER_SERVER_PORT=8083 \
-doc_parser_server:1.1 \
+-e STIRLING_ADDRESS="http://127.0.0.1:8080/api/v1/convert/file/pdf" \
+doc_parser_server:1.2 \
 /app/start_all.sh
-
 ```
+
+<span style="color:red;font-weight:bold;"> 注意：docker run中的环境变量参数，需要根据实际情况进行修改。</span>
+
+| 环境变量 | 定义                                                                                                                |
+|--------|-------------------------------------------------------------------------------------------------------------------|
+| MINIO_ADDRESS    | MinIO服务的地址，通过万悟使用本服务时复用万悟的minio地址。默认加入wanwu-net网络，通过minio-wanwu:9000访问，无需修改。配置自定义minio服务目前暂不支持，近期版本即将支持。          |
+| MINIO_ACCESS_KEY    | MinIO服务的ak，默认root。                                                                                                |
+| MINIO_SECRET_KEY    | MinIO服务的sk，<span style="color:red;">无有效默认值，必须自行填写</span>。                                                         |
+| BFF_SERVICE_MINIO    | 万悟MinIO服务api地址，用于获取图片在minio的访问地址，以实现图片展示，通过万悟使用本服务时无需修改。配置自定义minio服务可忽略此参数。                                       |
+| MINERU_ADDRESS    | Mineru服务的地址，镜像安装自带mineru2.0+版本，可以使用默认值。如需调用自有mineru，改为网络互通的mineru fastapi服务地址（仅支持mineru原生fast api数据协议）            |
+| MINERU_MODEL_SOURCE    | Mineru服务的模型源，可选huggingface/modelscope/local，默认modelscope。modelscope选项下，首次调用或模型缺失时将自动下载模型，完成下载后与local效果类似，推荐使用此参数。 |
+| DOC_PARSER_SERVER_PORT    | 本服务的端口，默认8083。                                                                                                    |
+| STIRLING_ADDRESS    | Stirling服务的地址（可选），需要额外安装stirling依赖，见下方[依赖安装](###依赖安装)。仅需处理doc,docx,ppt,pptx类型文档时需要安装和配置。                        |
 
 ### 通过源码安装
 前置依赖准备： python3.10.x, pip, miniconda, git，默认端口8083
@@ -121,6 +141,27 @@ cd /path/to/DocParserServer
 conda activate wanwu_doc_parser_server
 export MINERU_ADDRESS="http://127.0.0.1:8000/file_parse"
 bash start_app.sh
+```
+
+### 依赖安装（按需选择安装）
+#### STIRLING服务 -- 解析doc,docx,ppt,pptx文档时安装
+参考资料：[Stirling-PDF](https://github.com/felHR85/Stirling-PDF)。
+```bash
+# 快速镜像安装
+# 获取镜像
+docker pull stirlingtools/stirling-pdf:latest-fat
+# 启动容器
+docker run -d \
+  --name stirling-pdf \
+  -p 8080:8080 \
+  -v "./StirlingPDF/trainingData:/usr/share/tessdata" \
+  -v "./StirlingPDF/extraConfigs:/configs" \
+  -v "./StirlingPDF/customFiles:/customFiles/" \
+  -v "./StirlingPDF/logs:/logs/" \
+  -v "./StirlingPDF/pipeline:/pipeline/" \
+  -e DISABLE_ADDITIONAL_FEATURES=true \
+  -e LANGS=en_GB \
+  docker.stirlingpdf.com/stirlingtools/stirling-pdf:latest
 ```
 
 ## 数据协议

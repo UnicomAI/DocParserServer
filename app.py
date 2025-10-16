@@ -10,16 +10,17 @@ from models.mineru.client import MineruClient
 from utils.file_utils import save_file_to_local, extract_images_from_md, \
     save_images_res_to_local
 from utils.monitor_utils import log_time
-
+from config import config
 
 # 初始化日志
 from utils.log_utils import setup_logger, set_trace_id, get_trace_id
 logger = setup_logger(__name__, './logs/app.log')
 
-MINERU_ADDRESS = os.getenv("MINERU_ADDRESS", "http://127.0.0.1:8000/file_parse")
-client = MineruClient(MINERU_ADDRESS)
+from utils.file_convert_utils import convert_to_pdf
+client = MineruClient(config.mineru_address)
 
-ALLOWED_FILE_EXTENSIONS = (".pdf", ".png", ".jpeg", ".jpg", ".webp", ".gif")
+ALLOWED_FILE_EXTENSIONS = (".pdf", ".png", ".jpeg", ".jpg", ".webp", ".gif", ".docx", ".doc", ".ppt", "pptx")
+MODEL_FILE_EXTENSIONS = (".pdf", ".png", ".jpeg", ".jpg", ".webp", ".gif")
 
 # 初始化Flask应用
 app = Flask(__name__)
@@ -57,7 +58,7 @@ def model_parser_file():
                 "content": "",
                 "trace_id": get_trace_id()
             }), 400
-    if not file.filename.endswith(ALLOWED_FILE_EXTENSIONS):
+    if not file.filename.lower().endswith(ALLOWED_FILE_EXTENSIONS):
         return jsonify({
             "code": "400",
             "status": "failed",
@@ -117,6 +118,16 @@ def model_parser_file():
             }), 500
         logger.info(f"File downloaded and saved to {file_path}")
         # 根据配置调模型
+        # 转换为PDF
+        file_path = convert_to_pdf(file_path)
+        if not file_path.lower().endswith(MODEL_FILE_EXTENSIONS):
+            return jsonify({
+                "code": "500",
+                "status": "failed",
+                "message": f"File type is supported, but convert to model input(pdf/image) failed. Check file converter service. File_name: {file_name}",
+                "content": "",
+                "trace_id": get_trace_id()
+            }), 500
         response = client.parse_file(file_path)
         # 无模型mock返回测试
         # response = {
@@ -155,7 +166,7 @@ def model_parser_file():
         try:
             os.remove(file_path)
         except OSError as e:
-            print(f"删除文件失败: {e}")
+            logger.error(f"删除文件失败,Trace ID: {get_trace_id()}, exception: {e}")
 
 @app.route('/rag/test', methods=['GET'])
 def test():
@@ -164,5 +175,4 @@ def test():
 
 
 if __name__ == '__main__':
-    app_port = int(os.getenv("DOC_PARSER_SERVER_PORT", 8083))
-    app.run(host='0.0.0.0', port=app_port, debug=True, use_reloader=False)
+    app.run(host='0.0.0.0', port=config.doc_parser_server_port, debug=True, use_reloader=False)

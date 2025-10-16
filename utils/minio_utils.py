@@ -4,21 +4,18 @@ import requests
 from minio import Minio, S3Error
 from utils.log_utils import setup_logger
 logger = setup_logger(__name__, './logs/app.log')
+from config import config
 
-bucket_name = os.getenv("MINIO_DEFAULT_BUCKET", "rag-public")
-bff_service_minio = os.getenv("BFF_SERVICE_MINIO", "http://bff-service:6668/v1/api/deploy/info") #http://192.168.0.21:6668/v1/api/deploy/info
-
-MINIO_ADDRESS = os.getenv("MINIO_ADDRESS")
-MINIO_ACCESS_KEY = os.getenv("MINIO_ACCESS_KEY")
-MINIO_SECRET_KEY = os.getenv("MINIO_SECRET_KEY")
-if MINIO_ADDRESS is None or MINIO_ACCESS_KEY is None or MINIO_SECRET_KEY is None:
-    MINIO_ADDRESS = "minio-wanwu:9000" #192.168.0.21:9000
-    MINIO_ACCESS_KEY = "root"
-    MINIO_SECRET_KEY = "your_sk"
+bucket_name = config.minio_default_bucket
+bff_service_minio = config.bff_service_minio
+MINIO_ADDRESS = config.minio_address
+MINIO_ACCESS_KEY = config.minio_access_key
+MINIO_SECRET_KEY = config.minio_secret_key
 
 logger.info(f"minio address: {MINIO_ADDRESS}")
 logger.info(f"minio access key: {MINIO_ACCESS_KEY}")
 logger.info(f"minio secret key: {MINIO_SECRET_KEY}")
+
 minio_client = Minio(
     MINIO_ADDRESS,
     access_key=MINIO_ACCESS_KEY,
