@@ -14,6 +14,10 @@ def setup_logger(name, log_file, level=logging.INFO):
     logger = logging.getLogger(name)
     logger.setLevel(level)
 
+    # 核心优化：如果 logger 已有处理器，直接返回（避免重复添加）
+    if logger.handlers:
+        return logger
+
     # 创建 RotatingFileHandler
     file_handler = RotatingFileHandler(log_file, maxBytes=1000000, backupCount=5)
     file_handler.setLevel(level)
