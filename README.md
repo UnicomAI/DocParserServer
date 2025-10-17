@@ -85,12 +85,9 @@ docker run -itd --name doc_parser \
 -e MINIO_ACCESS_KEY="root" \
 -e MINIO_SECRET_KEY="your_sk" \
 -e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \
--e MINERU_ADDRESS="http://127.0.0.1:8000/file_parse" \
--e MINERU_MODEL_SOURCE=modelscope \
 -e DOC_PARSER_SERVER_PORT=8083 \
--e STIRLING_ADDRESS="http://127.0.0.1:8080/api/v1/convert/file/pdf" \
-doc_parser_server:1.2 \
-/app/start_all.sh
+crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-amd64 \
+sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
 ```
 
 <span style="color:red;font-weight:bold;"> 注意：docker run中的环境变量参数，需要根据实际情况进行修改。</span>
@@ -101,10 +98,8 @@ doc_parser_server:1.2 \
 | MINIO_ACCESS_KEY    | MinIO服务的ak，默认root。                                                                                                |
 | MINIO_SECRET_KEY    | MinIO服务的sk，<span style="color:red;">无有效默认值，必须自行填写</span>。                                                         |
 | BFF_SERVICE_MINIO    | 万悟MinIO服务api地址，用于获取图片在minio的访问地址，以实现图片展示，通过万悟使用本服务时无需修改。配置自定义minio服务可忽略此参数。                                       |
-| MINERU_ADDRESS    | Mineru服务的地址，镜像安装自带mineru2.0+版本，可以使用默认值。如需调用自有mineru，改为网络互通的mineru fastapi服务地址（仅支持mineru原生fast api数据协议）            |
-| MINERU_MODEL_SOURCE    | Mineru服务的模型源，可选huggingface/modelscope/local，默认modelscope。modelscope选项下，首次调用或模型缺失时将自动下载模型，完成下载后与local效果类似，推荐使用此参数。 |
 | DOC_PARSER_SERVER_PORT    | 本服务的端口，默认8083。                                                                                                    |
-| STIRLING_ADDRESS    | Stirling服务的地址（可选），需要额外安装stirling依赖，见下方[依赖安装](#依赖安装按需选择安装)。仅需处理doc,docx,ppt,pptx类型文档时需要安装和配置。                        |
+
 
 ### 通过源码安装
 前置依赖准备： python3.10.x, pip, miniconda, git，默认端口8083
