@@ -65,13 +65,19 @@
 
 下载镜像：
 ```bash
-# arm64
+# arm64（和下面的x86二选一）
 docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-arm64
-# x86_64
+# x86_64（和上面的arm64二选一）
 docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-amd64
+
 
 # 确认是否有镜像
 docker images|grep doc_parser_server
+
+# 如果需要解析doc\docx\ppt\pptx文档，继续拉去镜像。如不需要，则继续下一步。
+docker pull stirlingtools/stirling-pdf:latest-fat
+# 确认是否有镜像
+docker images|grep stirling
 ```
 
 docker run启动容器：
@@ -86,8 +92,22 @@ docker run -itd --name doc_parser \
 -e MINIO_SECRET_KEY="your_sk" \
 -e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \
 -e DOC_PARSER_SERVER_PORT=8083 \
+-e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \
 crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-amd64 \
 sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
+
+# 如果需要解析doc\docx\ppt\pptx文档，继续执行以下命令启动服务。如不需要，则完成安装。
+docker run -d \
+  --name stirling-pdf \
+  -p 8080:8080 \
+  -v "./StirlingPDF/trainingData:/usr/share/tessdata" \
+  -v "./StirlingPDF/extraConfigs:/configs" \
+  -v "./StirlingPDF/customFiles:/customFiles/" \
+  -v "./StirlingPDF/logs:/logs/" \
+  -v "./StirlingPDF/pipeline:/pipeline/" \
+  -e DISABLE_ADDITIONAL_FEATURES=true \
+  -e LANGS=en_GB \
+  docker.stirlingpdf.com/stirlingtools/stirling-pdf:latest
 ```
 
 <span style="color:red;font-weight:bold;"> 注意：docker run中的环境变量参数，需要根据实际情况进行修改。</span>
@@ -99,6 +119,7 @@ sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
 | MINIO_SECRET_KEY    | MinIO服务的sk，<span style="color:red;">无有效默认值，必须自行填写</span>。                                                         |
 | BFF_SERVICE_MINIO    | 万悟MinIO服务api地址，用于获取图片在minio的访问地址，以实现图片展示，通过万悟使用本服务时无需修改。配置自定义minio服务可忽略此参数。                                       |
 | DOC_PARSER_SERVER_PORT    | 本服务的端口，默认8083。                                                                                                    |
+| STIRLING_ADDRESS    | 如要解析doc\docx\ppt\pptx文档，则需要配置此参数，否则不需要配置。参数赋值使用本机ip+映射的端口默认8080。                                                                                                    |
 
 
 ### 通过源码安装
@@ -138,26 +159,6 @@ export MINERU_ADDRESS="http://127.0.0.1:8000/file_parse"
 bash start_app.sh
 ```
 
-### 依赖安装（按需选择安装）
-#### STIRLING服务 -- 解析doc,docx,ppt,pptx文档时安装
-参考资料：[Stirling-PDF](https://github.com/felHR85/Stirling-PDF)。
-```bash
-# 快速镜像安装
-# 获取镜像
-docker pull stirlingtools/stirling-pdf:latest-fat
-# 启动容器
-docker run -d \
-  --name stirling-pdf \
-  -p 8080:8080 \
-  -v "./StirlingPDF/trainingData:/usr/share/tessdata" \
-  -v "./StirlingPDF/extraConfigs:/configs" \
-  -v "./StirlingPDF/customFiles:/customFiles/" \
-  -v "./StirlingPDF/logs:/logs/" \
-  -v "./StirlingPDF/pipeline:/pipeline/" \
-  -e DISABLE_ADDITIONAL_FEATURES=true \
-  -e LANGS=en_GB \
-  docker.stirlingpdf.com/stirlingtools/stirling-pdf:latest
-```
 
 ## 数据协议
 ### 已支持的文档类型
