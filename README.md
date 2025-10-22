@@ -64,26 +64,29 @@
 镜像中包含python，conda, 运行服务所需要的依赖，以及MinerU服务和模型。
 
 下载镜像：
+Nvidia显卡或者CPU推理镜像，arm64和amd64(x86_64）二选一
 ```bash
-# arm64（和下面的x86二选一）
+# arm64
 docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-arm64
-# x86_64（和上面的arm64二选一）
+# x86_64
 docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-amd64
-
-
 # 确认是否有镜像
 docker images|grep doc_parser_server
-
-# 如果需要解析doc\docx\ppt\pptx文档，继续拉去镜像。如不需要，则继续下一步。
-docker pull stirlingtools/stirling-pdf:latest-fat
-# 确认是否有镜像
-docker images|grep stirling
 ```
 
-docker run启动容器：
+如果您是华为昇腾910B显卡，请使用专用推理镜像，目前仅支持在arm64架构上运行。
 ```bash
+# arm64
+docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_910b:1.2-20251022-arm64
+# 确认是否有镜像
+docker images|grep doc_parser_910b
+```
+
+Nvidia显卡或cpu推理镜像docker run启动容器：
+```bash
+
 # BFF_SERVICE_MINIO依赖万悟平台的部署，部署后可以获取到这个接口
-docker run -itd --name doc_parser \
+docker run -d --name doc_parser \
 -p 8083:8083 \
 --network wanwu-net \
 --restart always \
@@ -95,7 +98,45 @@ docker run -itd --name doc_parser \
 -e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \
 crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-amd64 \
 sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
+```
 
+华为910B显卡推理镜像docker run启动容器：
+```bash
+# BFF_SERVICE_MINIO依赖万悟平台的部署，部署后可以获取到这个接口
+docker run -d \
+  -p 8083:8083 \
+  --name doc_parser_910b \
+  --device=/dev/davinci4 \
+  --device=/dev/davinci_manager \
+  --device=/dev/devmm_svm \
+  --device=/dev/hisi_hdc \
+  -v /usr/local/bin/npu-smi:/usr/local/bin/npu-smi \
+  -v /usr/local/Ascend/driver/:/usr/local/Ascend/driver \
+  -v /usr/local/Ascend/add-ons/:/usr/local/Ascend/add-ons/ \
+  -v /var/log/npu/conf/slog/slog.conf:/var/log/npu/conf/slog/slog.conf \
+  -v /var/log/npu/slog/:/var/log/npu/slog \
+  -v /var/log/npu/profiling/:/var/log/npu/profiling \
+  -v /var/log/npu/dump/:/var/log/npu/dump \
+  -v /var/log/npu/:/usr/slog \
+  -v /root/doc_parser:/app \
+  -e MINIO_ADDRESS="minio-wanwu:9000" \
+  -e MINIO_ACCESS_KEY="root" \
+  -e MINIO_SECRET_KEY="V5EMfXAuCCx3JkjTG4jQ" \
+  -e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \
+  -e DOC_PARSER_SERVER_PORT=8083 \
+  -e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \
+  doc_parser_910b:1.2 \
+  bash /app/start_all.sh
+```
+
+如果需要解析doc\docx\ppt\pptx文档，继续拉去镜像。如不需要，则继续下一步。
+```bash
+docker pull stirlingtools/stirling-pdf:latest-fat
+# 确认是否有镜像
+docker images|grep stirling
+```
+
+```bash
 # 如果需要解析doc\docx\ppt\pptx文档，继续执行以下命令启动服务。如不需要，则完成安装。
 docker run -d \
   --name stirling-pdf \
