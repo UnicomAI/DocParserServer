@@ -90,11 +90,11 @@ docker run -d --name doc_parser \
 -p 8083:8083 \
 --network wanwu-net \
 --restart always \
+-e USE_CUSTOM_MINIO="false" \
 -e MINIO_ADDRESS="minio-wanwu:9000" \
 -e MINIO_ACCESS_KEY="root" \
 -e MINIO_SECRET_KEY="your_sk" \
 -e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \
--e DOC_PARSER_SERVER_PORT=8083 \
 -e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \
 crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-amd64 \
 sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
@@ -119,11 +119,11 @@ docker run -d \
   -v /var/log/npu/dump/:/var/log/npu/dump \
   -v /var/log/npu/:/usr/slog \
   -v /root/doc_parser:/app \
+  -e USE_CUSTOM_MINIO="false" \
   -e MINIO_ADDRESS="minio-wanwu:9000" \
   -e MINIO_ACCESS_KEY="root" \
   -e MINIO_SECRET_KEY="V5EMfXAuCCx3JkjTG4jQ" \
   -e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \
-  -e DOC_PARSER_SERVER_PORT=8083 \
   -e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \
   doc_parser_910b:1.2 \
   bash /app/start_all.sh
@@ -155,11 +155,11 @@ docker run -d \
 
 | 环境变量 | 定义                                                                                                                |
 |--------|-------------------------------------------------------------------------------------------------------------------|
-| MINIO_ADDRESS    | MinIO服务的地址，通过万悟使用本服务时复用万悟的minio地址。默认加入wanwu-net网络，通过minio-wanwu:9000访问，无需修改。配置自定义minio服务目前暂不支持，近期版本即将支持。          |
+| USE_CUSTOM_MINIO    | 是否使用自定义minio。默认false，设置为true后可以不依赖万悟平台独立使用，不需要配置BFF_SERVICE_MINIO环境变量。          |
+| MINIO_ADDRESS    | MinIO服务的地址，通过万悟使用本服务时复用万悟的minio地址。默认加入wanwu-net网络，通过minio-wanwu:9000访问，无需修改。自定义minio服务填写ip:port（不要加http://）。          |
 | MINIO_ACCESS_KEY    | MinIO服务的ak，默认root。                                                                                                |
 | MINIO_SECRET_KEY    | MinIO服务的sk，<span style="color:red;">无有效默认值，必须自行填写</span>。                                                         |
 | BFF_SERVICE_MINIO    | 万悟MinIO服务api地址，用于获取图片在minio的访问地址，以实现图片展示，通过万悟使用本服务时无需修改。配置自定义minio服务可忽略此参数。                                       |
-| DOC_PARSER_SERVER_PORT    | 本服务的端口，默认8083。                                                                                                    |
 | STIRLING_ADDRESS    | 如要解析doc\docx\ppt\pptx文档，则需要配置此参数，否则不需要配置。参数赋值使用本机ip+映射的端口默认8080。                                                                                                    |
 
 
