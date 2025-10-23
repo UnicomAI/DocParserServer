@@ -6,6 +6,7 @@ from utils.log_utils import setup_logger
 logger = setup_logger(__name__, './logs/app.log')
 from config import config
 
+use_custom_minio = config.use_custom_minio
 bucket_name = config.minio_default_bucket
 bff_service_minio = config.bff_service_minio
 MINIO_ADDRESS = config.minio_address
@@ -46,11 +47,15 @@ def upload_file_to_minio(file_path, overwrite_file_name=None):
 
         logger.info(f"File '{file_name}' uploaded to Minio bucket '{bucket_name}'")
 
-        response = requests.get(bff_service_minio)
-        response_data = response.json()
-        endpoint = response_data['data']['webBaseUrl']
-        # http://192.168.0.21:8081/minio/download/api/
-        download_link = f"{endpoint}{bucket_name}/{file_name}"
+        if use_custom_minio:
+            endpoint = MINIO_ADDRESS
+            download_link = f"{endpoint}/{bucket_name}/{file_name}"
+        else:
+            response = requests.get(bff_service_minio)
+            response_data = response.json()
+            endpoint = response_data['data']['webBaseUrl']
+            # http://192.168.0.21:8081/minio/download/api/
+            download_link = f"{endpoint}{bucket_name}/{file_name}"
         logger.info(f"File uploaded successfully, download link: {download_link}")
         return download_link
     except S3Error as e:

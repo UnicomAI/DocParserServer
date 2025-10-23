@@ -4,9 +4,9 @@ def test_model_parser_file():
     # windows
     # file_path = r'D:\文件\中船\公式计算\钢质海船入级规范2023_P658.pdf'
     # linux
-    file_path = r'/home/jovyan/lzy/zc2023_P658.pdf'
-    file_name = 'zc2023_P658.pdf'
-    MODEL_PARSER_URL = 'http://192.168.0.229:8083/rag/model_parser_file'
+    file_path = r'/home/dev/test_complex_formula.png'
+    file_name = 'test_complex_formula.png'
+    MODEL_PARSER_URL = 'http://localhost:8083/rag/model_parser_file'
 
     files = {
         'file': (file_name, open(file_path, 'rb'), 'application/pdf')
