@@ -103,7 +103,7 @@ def model_parser_file():
             "trace_id": get_trace_id()
         }), 400
     # 获取请求参数
-    extract_image = data.get('extract_image', 1)
+    extract_image = data.get('extract_image', "1")
     file_path = ""
     try:
         # 保存文件到本地
@@ -141,7 +141,7 @@ def model_parser_file():
         results = response["results"][file_name.rsplit('.', 1)[0]]
         md_content = results.get('md_content')
         save_images_res_to_local(file_name, results)
-        if extract_image and md_content:
+        if extract_image == "1" and md_content:
             logger.info(f"extracting images for file: {file_path}")
             md_content = extract_images_from_md(md_content,"./data/images")
 
