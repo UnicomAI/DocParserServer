@@ -49,7 +49,7 @@ def upload_file_to_minio(file_path, overwrite_file_name=None):
 
         if use_custom_minio:
             endpoint = MINIO_ADDRESS
-            download_link = f"{endpoint}/{bucket_name}/{file_name}"
+            download_link = f"http://{endpoint}/{bucket_name}/{file_name}"
         else:
             response = requests.get(bff_service_minio)
             response_data = response.json()
