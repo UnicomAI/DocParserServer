@@ -118,7 +118,6 @@ docker run -d \
   -v /var/log/npu/profiling/:/var/log/npu/profiling \
   -v /var/log/npu/dump/:/var/log/npu/dump \
   -v /var/log/npu/:/usr/slog \
-  -v /root/doc_parser:/app \
   -e MINIO_ADDRESS="minio-wanwu:9000" \
   -e MINIO_ACCESS_KEY="root" \
   -e MINIO_SECRET_KEY="V5EMfXAuCCx3JkjTG4jQ" \
