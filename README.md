@@ -77,9 +77,9 @@ docker images|grep doc_parser_server
 如果您是华为昇腾910B显卡，请使用专用推理镜像，目前仅支持在arm64架构上运行。
 ```bash
 # arm64
-docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_910b:1.2-20251022-arm64
+docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251022-arm64-910b
 # 确认是否有镜像
-docker images|grep doc_parser_910b
+docker images|grep doc_parser_server
 ```
 
 Nvidia显卡或cpu推理镜像docker run启动容器：
@@ -124,7 +124,7 @@ docker run -d \
   -e MINIO_SECRET_KEY="V5EMfXAuCCx3JkjTG4jQ" \
   -e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \
   -e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \
-  doc_parser_910b:1.2 \
+  crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251022-arm64-910b \
   bash /app/start_all.sh
 ```
 
