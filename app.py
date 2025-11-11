@@ -6,18 +6,17 @@ from flask import Flask, request, jsonify
 from flask_cors import CORS
 from marshmallow import Schema, fields, ValidationError
 
-from models.mineru.client import MineruClient
-from utils.file_utils import save_file_to_local, extract_images_from_md, \
-    save_images_res_to_local
-from utils.monitor_utils import log_time
 from config import config
-
+from models.ModelStrategy import CLIENT_STRATEGIES
+from utils.file_utils import save_file_to_local
 # 初始化日志
 from utils.log_utils import setup_logger, set_trace_id, get_trace_id
+from utils.monitor_utils import log_time
+
 logger = setup_logger(__name__, './logs/app.log')
 
 from utils.file_convert_utils import convert_to_pdf
-client = MineruClient(config.mineru_address)
+client = CLIENT_STRATEGIES[config.model_type](config.model_address)
 
 ALLOWED_FILE_EXTENSIONS = (".pdf", ".png", ".jpeg", ".jpg", ".webp", ".gif", ".docx", ".doc", ".ppt", "pptx")
 MODEL_FILE_EXTENSIONS = (".pdf", ".png", ".jpeg", ".jpg", ".webp", ".gif")
@@ -128,6 +127,7 @@ def model_parser_file():
                 "content": "",
                 "trace_id": get_trace_id()
             }), 500
+        logger.info("start to parse file: %s", file_name)
         response = client.parse_file(file_path)
         # 无模型mock返回测试
         # response = {
@@ -138,12 +138,10 @@ def model_parser_file():
         #         }
         #     }
         # }
-        results = response["results"][file_name.rsplit('.', 1)[0]]
-        md_content = results.get('md_content')
-        save_images_res_to_local(file_name, results)
-        if extract_image == "1" and md_content:
-            logger.info(f"extracting images for file: {file_path}")
-            md_content = extract_images_from_md(md_content,"./data/images")
+        response = client.parse_file(file_path)
+        logger.info(f"parse done! started to post process file: {file_path}")
+        md_content = client.post_process(extract_image, file_name, file_path, response)
+        logger.info(f"post process done! Finished. {file_path}")
 
         return jsonify({"code": "200","status": "success","message": "文档处理完成","content": md_content,"trace_id": get_trace_id()})
 

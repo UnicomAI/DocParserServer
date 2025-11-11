@@ -1,6 +1,8 @@
 import json
 import os
 import requests
+
+from utils.file_utils import save_images_res_to_local, extract_images_from_md
 from utils.monitor_utils import log_time
 from utils.log_utils import setup_logger
 
@@ -42,3 +44,12 @@ class MineruClient:
                 logger.info(f"请求异常：{e}")
                 raise
 
+    def post_process(self, extract_image, file_name, file_path, response):
+        results = response["results"][file_name.rsplit('.', 1)[0]]
+        md_content = results.get('md_content')
+        save_images_res_to_local(file_name, results)
+        # 返回图片链接目录，返回json文件
+        if extract_image and md_content:
+            logger.info(f"extracting images for file: {file_path}")
+            md_content = extract_images_from_md(md_content, "./data/images")
+        return md_content

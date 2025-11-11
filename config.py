@@ -17,7 +17,8 @@ class SingletonMeta(type):
 class AppConfig(metaclass=SingletonMeta):
     """应用配置类，集中管理所有环境变量"""
     # 服务相关配置
-    mineru_address: str = os.getenv("MINERU_ADDRESS", "http://127.0.0.1:8000/file_parse")
+    model_type: str = os.getenv("MODEL_TYPE", "mineru") #mineru, paddleocrvl
+    model_address: str = os.getenv("MODEL_ADDRESS", "http://127.0.0.1:8000/file_parse")
     doc_parser_server_port: int = int(os.getenv("DOC_PARSER_SERVER_PORT", 8083))
 
     # 文件转换服务配置
