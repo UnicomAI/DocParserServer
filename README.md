@@ -61,9 +61,43 @@
 ## 本地部署
 
 ### 通过镜像安装(推荐)
-镜像中包含python，conda, 运行服务所需要的依赖，以及MinerU服务和模型。
+镜像中包含python，conda等服务运行需要的依赖和模型。
 
-下载镜像：
+#### 基于PaddleOCRVL vllm推理加速的镜像，性能与效果均有显著提升
+如果您是Nvidia显卡用户，且CUDA驱动版本≥550.xx.xx, 建议使用基于paddleocr的专用推理镜像，目前仅支持在x86架构上运行。
+```bash
+# arm64
+docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251112-amd64-paddle
+docker pull ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-genai-vllm-server:latest-offline
+```
+PaddleOCRVL vllm推理加速的镜像docker run启动容器：
+```bash
+# 启动doc_parser_server容器
+docker run -d --name doc_parser \
+-p 8083:8083 \
+--network wanwu-net \  #如果不与万悟平台集成使用服务，则删除本行
+--restart always \
+-e MODEL_TYPE="paddleocrvl" \
+-e MODEL_ADDRESS="http://{ip}:8118/v1" \ #ip替换为宿主机的IP地址
+-e USE_CUSTOM_MINIO="false" \  #如果不与万悟平台集成使用服务，则设置为True，使用自定义Minio
+-e MINIO_ADDRESS="minio-wanwu:9000" \
+-e MINIO_ACCESS_KEY="root" \
+-e MINIO_SECRET_KEY="your_sk" \
+-e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \  #如果不与万悟平台集成使用服务，则删除本行
+-e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \  #如果不使用扩展功能1：多类型文档解析，则删除本行
+crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251112-amd64-paddle \
+sh -c "chmod +x /app/DocParserServer-main/docker_start_app.sh && /app/DocParserServer-main/docker_start_app.sh"
+# 启动paddleocrvl容器
+docker run \
+    -it \
+    --rm \
+    --gpus all \
+    --network host \
+    ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-genai-vllm-server:latest \
+    paddleocr genai_server --model_name PaddleOCR-VL-0.9B --host 0.0.0.0 --port 8118 --backend vllm
+```
+
+#### 基于MinerU在CPU/Nvidia GPU推理镜像
 Nvidia显卡或者CPU推理镜像，arm64和amd64(x86_64）二选一
 ```bash
 # arm64
@@ -74,17 +108,8 @@ docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite
 docker images|grep doc_parser_server
 ```
 
-如果您是华为昇腾910B显卡，请使用专用推理镜像，目前仅支持在arm64架构上运行。
-```bash
-# arm64
-docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251022-arm64-910b
-# 确认是否有镜像
-docker images|grep doc_parser_server
-```
-
 Nvidia显卡或cpu推理镜像docker run启动容器：
 ```bash
-
 # BFF_SERVICE_MINIO依赖万悟平台的部署，部署后可以获取到这个接口
 docker run -d --name doc_parser \
 -p 8083:8083 \
@@ -98,6 +123,15 @@ docker run -d --name doc_parser \
 -e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \
 crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-amd64 \
 sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
+```
+
+#### 基于MinerU在华为昇腾910B推理镜像
+如果您是华为昇腾910B显卡，请使用专用推理镜像，目前仅支持在arm64架构上运行。
+```bash
+# arm64
+docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251022-arm64-910b
+# 确认是否有镜像
+docker images|grep doc_parser_server
 ```
 
 华为910B显卡推理镜像docker run启动容器：
@@ -128,11 +162,10 @@ docker run -d \
   bash /app/start_all.sh
 ```
 
+#### 扩展功能1: 多类型文档解析
 如果需要解析doc\docx\ppt\pptx文档，继续拉去镜像。如不需要，则继续下一步。
 ```bash
 docker pull stirlingtools/stirling-pdf:latest-fat
-# 确认是否有镜像
-docker images|grep stirling
 ```
 
 ```bash
