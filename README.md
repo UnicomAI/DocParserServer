@@ -62,7 +62,7 @@
 文本内容解析：
 |            原图             |       模型A 解析结果        | 模型B 解析结果 |
 |:-------------------------:|:---------------------:| :---: |
-| docs/images/docs_text.png | docs/images/docs_text_model_m.png | docs/images/docs_text_model_m.png |
+| ![原图](docs/images/docs_text.png) | ![Paddle模型解析效果](docs/images/docs_text_model_m.png) | ![mineru模型解析效果](docs/images/docs_text_model_m.png) |
 
 表格内容解析：
 图片内容解析：
