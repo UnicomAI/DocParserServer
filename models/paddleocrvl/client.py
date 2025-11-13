@@ -46,16 +46,11 @@ class PaddleOCRVLClient:
 
     @log_time
     def parse_file(self, file_path):
-        endpoint = f"{self.base_url}"
-        payload = {
-            "output_dir": "./output",
-            "backend": "pipeline",
-            "lang_list": "ch",
-            "return_md": "true",
-            "return_content_list": "True",
-            "return_images": "True"
-        }
         file_name = os.path.basename(file_path)
+        _, file_ext = os.path.splitext(file_name)
+        if(file_ext not in [".pdf", ".jpg", ".jpeg", ".png"]):
+            logger.error(f"warning：file type is not supported. 文件类型 {file_ext} 不支持，仅支持 pdf、jpg、jpeg、png 格式")
+            raise ValueError(f"File type {file_ext} is not supported. Only pdf, jpg, jpeg, png are supported.")
         try:
             with open(file_path, "rb") as f:
                 # 构造文件上传参数（用Path获取文件名，兼容不同系统路径）
