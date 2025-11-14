@@ -208,6 +208,7 @@ docker run -d \
   bash /app/start_all.sh
 ```
 
+---
 #### 扩展功能1: 多类型文档解析, 如需要直接输入doc\docx\ppt\pptx文档进行解析, 则需要额外安装此部分功能
 ##### 步骤1：拉取模型服务基础镜像
 ```bash
