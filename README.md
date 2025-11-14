@@ -60,14 +60,28 @@
 
 ## 文档解析效果展示
 文本内容解析：
-|            原图             |       模型A 解析结果        | 模型B 解析结果 |
+|            原图             |       paddleocrvl 解析结果        | mineru 解析结果 |
 |:-------------------------:|:---------------------:| :---: |
 | ![原图](docs/images/docs_text.png) | ![Paddle模型解析效果](docs/images/docs_text_model_p.png) | ![mineru模型解析效果](docs/images/docs_text_model_m.png) |
 
+paddle模型更精确提取了文本的标题层级结构。
+
 表格内容解析：
-图片内容解析：
-阅读顺序解析：
-公式内容解析
+|            原图             |       paddleocrvl 解析结果        | mineru 解析结果 |
+|:-------------------------:|:---------------------:| :---: |
+| ![原图](docs/images/docs_table.png) | ![Paddle模型解析效果](docs/images/docs_table_model_p.png) | ![mineru模型解析效果](docs/images/docs_table_model_m.png) |
+
+paddle模型更精确的还原表格结构和文本。
+
+图片、公式内容解析：
+|            原图             |       paddleocrvl 解析结果        | mineru 解析结果 |
+|:-------------------------:|:---------------------:| :---: |
+| ![原图](docs/images/docs_formula.png) | ![Paddle模型解析效果](docs/images/docs_formula_model_p.png) | ![mineru模型解析效果](docs/images/docs_formula_model_m.png) |
+
+对公式的提取均表现良好，paddle模型能够更精确的可视化还原部分公式内容。
+同时两个均支持提取图片，将支持图片中的文本内容识别，敬请期待！
+
+
 
 ## 本地部署
 
