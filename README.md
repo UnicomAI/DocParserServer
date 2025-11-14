@@ -88,14 +88,16 @@ paddle模型更精确的还原表格结构和文本。
 ### 通过镜像安装(推荐)
 镜像中包含python，conda等服务运行需要的依赖和模型。下面提供了不同cpu架构，GPU资源，以及paddle和mineru两种模型镜像部署方式，**请选择下面一种适合您场景的模型与硬件资源**组合方式进行部署。
 
-#### 基于PaddleOCRVL vllm推理加速的镜像，性能与效果均有显著提升
+---
+#### 方案一：基于PaddleOCR-VL模型，在X86架构，通过Nvidia显卡推理的部署方案，性能与效果最优
 如果您是Nvidia显卡用户，且CUDA驱动版本≥550.xx.xx, 建议使用基于paddleocr的专用推理镜像，目前仅支持在x86架构上运行。
+##### 步骤1：拉取模型服务基础镜像
 ```bash
 # x86/amd64
 docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251112-amd64-paddle
 docker pull ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-genai-vllm-server:latest-offline
 ```
-PaddleOCRVL vllm推理加速的镜像docker run启动容器：
+##### 步骤2：启动模型服务容器
 ```bash
 # 启动doc_parser_server容器
 docker run -d --name doc_parser \
@@ -122,18 +124,38 @@ docker run \
     paddleocr genai_server --model_name PaddleOCR-VL-0.9B --host 0.0.0.0 --port 8118 --backend vllm
 ```
 
-#### 基于MinerU在CPU/Nvidia GPU推理镜像
-Nvidia显卡或者CPU推理镜像，arm64和amd64(x86_64）二选一
+---
+#### 方案二：基于MinerU在ARM64架构，通过CPU或Nvidia显卡推理的部署方案
+##### 步骤1：拉取模型服务基础镜像
 ```bash
 # arm64
 docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-arm64
-# x86_64
-docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-amd64
-# 确认是否有镜像
-docker images|grep doc_parser_server
+```
+##### 步骤2：启动模型服务容器
+```bash
+# BFF_SERVICE_MINIO依赖万悟平台的部署，部署后可以获取到这个接口
+docker run -d --name doc_parser \
+-p 8083:8083 \
+--network wanwu-net \
+--restart always \
+-e USE_CUSTOM_MINIO="false" \
+-e MINIO_ADDRESS="minio-wanwu:9000" \
+-e MINIO_ACCESS_KEY="root" \
+-e MINIO_SECRET_KEY="your_sk" \
+-e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \
+-e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \
+crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-arm64 \
+sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
 ```
 
-Nvidia显卡或cpu推理镜像docker run启动容器：
+---
+#### 方案三：基于MinerU在X86_64架构，通过CPU或Nvidia显卡推理的部署方案
+##### 步骤1：拉取模型服务基础镜像
+```bash
+# x86_64
+docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-amd64
+```
+##### 步骤2：启动模型服务容器
 ```bash
 # BFF_SERVICE_MINIO依赖万悟平台的部署，部署后可以获取到这个接口
 docker run -d --name doc_parser \
@@ -150,16 +172,15 @@ crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_
 sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
 ```
 
-#### 基于MinerU在华为昇腾910B推理镜像
-如果您是华为昇腾910B显卡，请使用专用推理镜像，目前仅支持在arm64架构上运行。
+---
+#### 方案四：基于MinerU在arm64架构，通过华为昇腾910B NPU推理的部署方案
+##### 步骤1：拉取模型服务基础镜像
 ```bash
 # arm64
 docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251022-arm64-910b
-# 确认是否有镜像
-docker images|grep doc_parser_server
 ```
 
-华为910B显卡推理镜像docker run启动容器：
+##### 步骤2：启动模型服务容器
 ```bash
 # BFF_SERVICE_MINIO依赖万悟平台的部署，部署后可以获取到这个接口
 docker run -d \
@@ -187,12 +208,13 @@ docker run -d \
   bash /app/start_all.sh
 ```
 
-#### 扩展功能1: 多类型文档解析
-如果需要解析doc\docx\ppt\pptx文档，继续拉去镜像。如不需要，则继续下一步。
+---
+#### 扩展功能1: 多类型文档解析, 如需要直接输入doc\docx\ppt\pptx文档进行解析, 则需要额外安装此部分功能
+##### 步骤1：拉取模型服务基础镜像
 ```bash
 docker pull stirlingtools/stirling-pdf:latest-fat
 ```
-
+##### 步骤2：启动多类型文档服务容器
 ```bash
 # 如果需要解析doc\docx\ppt\pptx文档，继续执行以下命令启动服务。如不需要，则完成安装。
 docker run -d \
@@ -210,14 +232,16 @@ docker run -d \
 
 <span style="color:red;font-weight:bold;"> 注意：docker run中的环境变量参数，需要根据实际情况进行修改。</span>
 
-| 环境变量 | 定义                                                                                                                |
-|--------|-------------------------------------------------------------------------------------------------------------------|
-| USE_CUSTOM_MINIO    | 是否使用自定义minio。默认false，设置为true后可以不依赖万悟平台独立使用，不需要配置BFF_SERVICE_MINIO环境变量。          |
-| MINIO_ADDRESS    | MinIO服务的地址，通过万悟使用本服务时复用万悟的minio地址。默认加入wanwu-net网络，通过minio-wanwu:9000访问，无需修改。自定义minio服务填写ip:port（不要加http://）。          |
-| MINIO_ACCESS_KEY    | MinIO服务的ak，默认root。                                                                                                |
-| MINIO_SECRET_KEY    | MinIO服务的sk，<span style="color:red;">无有效默认值，必须自行填写</span>。                                                         |
-| BFF_SERVICE_MINIO    | 万悟MinIO服务api地址，用于获取图片在minio的访问地址，以实现图片展示，通过万悟使用本服务时无需修改。配置自定义minio服务可忽略此参数。                                       |
-| STIRLING_ADDRESS    | 如要解析doc\docx\ppt\pptx文档，则需要配置此参数，否则不需要配置。参数赋值使用本机ip+映射的端口默认8080。                                                                                                    |
+| 环境变量              | 定义                                                                                                           |
+|-------------------|--------------------------------------------------------------------------------------------------------------|
+| MODEL_TYPE        | 使用的模型类型，MinerU镜像无需配置，其他镜像需要选择模型类型，枚举如下：mineru/paddleocrvl。                                                   |
+| MODEL_ADDRESS     | 模型服务的调用地址。仅选择除mineru外的模型需要配置，paddleocrvl配置方式：http://{ip}:8118/v1（ip为宿主机ip）                                   |
+| USE_CUSTOM_MINIO  | 是否使用自定义minio。默认false，设置为true后可以不依赖万悟平台独立使用，不需要配置BFF_SERVICE_MINIO环境变量。                                       |
+| MINIO_ADDRESS     | MinIO服务的地址，通过万悟使用本服务时复用万悟的minio地址。默认加入wanwu-net网络，通过minio-wanwu:9000访问，无需修改。自定义minio服务填写ip:port（不要加http://）。 |
+| MINIO_ACCESS_KEY  | MinIO服务的ak，默认root。                                                                                           |
+| MINIO_SECRET_KEY  | MinIO服务的sk，<span style="color:red;">无有效默认值，必须自行填写</span>。                                                    |
+| BFF_SERVICE_MINIO | 万悟MinIO服务api地址，用于获取图片在minio的访问地址，以实现图片展示，通过万悟使用本服务时无需修改。配置自定义minio服务可忽略此参数。                                  |
+| STIRLING_ADDRESS  | 如要解析doc\docx\ppt\pptx文档，则需要配置此参数，否则不需要配置。参数赋值使用本机ip+映射的端口默认8080。                                             |
 
 
 ### 通过源码安装
@@ -268,6 +292,13 @@ bash start_app.sh
 | jpg     |
 | webp    |
 | gif     |
+
+| 安装striling扩展模块后多支持的文档类型 |
+|-------------------------|
+| doc                     |
+| docx                    |
+| ppt                     |
+| pptx                    |
 
 ### 文档处理接口
 #### 概述
