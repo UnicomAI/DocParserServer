@@ -18,7 +18,6 @@ logger = setup_logger(__name__, './flask_server.log')
 # 配置参数
 UPLOAD_FOLDER = "./uploads"  # 上传文件临时存储目录
 OUTPUT_FOLDER = "./output"   # 处理结果输出目录
-ALLOWED_EXTENSIONS = {"pdf"}  # 仅支持 PDF 文件
 
 # 创建必要目录
 Path(UPLOAD_FOLDER).mkdir(parents=True, exist_ok=True)
@@ -26,10 +25,6 @@ Path(OUTPUT_FOLDER).mkdir(parents=True, exist_ok=True)
 
 # 初始化 PaddleOCRVL 实例（全局单例，避免重复初始化）
 pipeline = PaddleOCRVL(vl_rec_backend="vllm-server", vl_rec_server_url=config.model_address) # "http://127.0.0.1:8118/v1"
-
-def allowed_file(filename):
-    """检查文件是否为允许的类型"""
-    return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @app.route("/file_parse", methods=["POST"])
 def pdf_to_markdown():
@@ -52,13 +47,6 @@ def pdf_to_markdown():
                 "data": None
             }), 400
 
-        # 3. 检查文件类型
-        if not allowed_file(file.filename):
-            return jsonify({
-                "code": 400,
-                "message": f"不支持的文件类型，仅支持 {ALLOWED_EXTENSIONS}",
-                "data": None
-            }), 400
 
         # 4. 生成唯一文件名，避免冲突
         file_ext = file.filename.rsplit(".", 1)[1].lower()

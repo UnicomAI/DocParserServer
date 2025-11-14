@@ -25,7 +25,7 @@
 </div>
 
 
-&emsp;&emsp;**万悟文档解析服务**是一款面向**企业级**场景的通用文档解析服务，通过引入AI能力和多种业界领先的视觉文档解析模型，精准、高效的将各类文档转化为 Markdown 结构化标准格式，支持提取文档中的多模态元素，例如表格、公式、图片等，将复杂多模态知识转换为结构化的表示有助于大语言模型对这些多模态知识的理解。借助该服务，预先将各类非结构化文档提取内容成文本信息后，再把结构化的文本信息写入知识库进行向量索引构建，可以显著提升RAG知识问答、智能体知识库节点等知识问答场景的效果。该服务依赖**元景万悟智能体平台**([github项目地址](https://github.com/UnicomAI/wanwu/edit/main/README_CN.md))，需要与平台共同使用。目前服务已支持 pdf, png, jpeg, jpg, webp, gif, doc, docx, ppt, pptx类型的文档。未来将持续扩展支持文档的类型，如html等。目前已经支持mineru解析，未来将支持如Dolphin或markitdown等更多文档解析模型能力，敬请期待！
+&emsp;&emsp;**万悟文档解析服务**是一款面向**企业级**场景的通用文档解析服务，通过引入AI能力和多种业界领先的视觉文档解析模型，精准、高效的将各类文档转化为 Markdown 结构化标准格式，支持提取文档中的多模态元素，例如表格、公式、图片等，将复杂多模态知识转换为结构化的表示有助于大语言模型对这些多模态知识的理解。借助该服务，预先将各类非结构化文档提取内容成文本信息后，再把结构化的文本信息写入知识库进行向量索引构建，可以显著提升RAG知识问答、智能体知识库节点等知识问答场景的效果。该服务依赖**元景万悟智能体平台**([github项目地址](https://github.com/UnicomAI/wanwu/edit/main/README_CN.md))，需要与平台共同使用。目前服务已支持 pdf, png, jpeg, jpg, webp, gif, doc, docx, ppt, pptx类型的文档。未来将持续扩展支持文档的类型，如html等。目前已经支持MinerU解析和PaddleOCR-VL解析，已经适配和支持MinerU模型在NPU上的推理，未来将支持更多SOTA文档解析模型能力，敬请期待！
 
 ------
 
@@ -56,7 +56,32 @@
   
 - **标准格式**：支持按Markdown标准格式输出，对大模型理解格式更友好
   
-- **多种运行环境**：支持纯CPU环境运行，并支持GPU(CUDA)/NPU(适配中敬请期待)加速
+- **多种运行环境**：支持纯CPU环境运行，并支持GPU(CUDA)/NPU(mineru已适配)加速
+
+## 文档解析效果展示
+文本内容解析：
+|            原图             |       paddleocrvl 解析结果        | mineru 解析结果 |
+|:-------------------------:|:---------------------:| :---: |
+| ![原图](docs/images/docs_text.png) | ![Paddle模型解析效果](docs/images/docs_text_model_p.png) | ![mineru模型解析效果](docs/images/docs_text_model_m.png) |
+
+paddle模型更精确提取了文本的标题层级结构。
+
+表格内容解析：
+|            原图             |       paddleocrvl 解析结果        | mineru 解析结果 |
+|:-------------------------:|:---------------------:| :---: |
+| ![原图](docs/images/docs_table.png) | ![Paddle模型解析效果](docs/images/docs_table_model_p.png) | ![mineru模型解析效果](docs/images/docs_table_model_m.png) |
+
+paddle模型更精确的还原表格结构和文本。
+
+图片、公式内容解析：
+|            原图             |       paddleocrvl 解析结果        | mineru 解析结果 |
+|:-------------------------:|:---------------------:| :---: |
+| ![原图](docs/images/docs_formula.png) | ![Paddle模型解析效果](docs/images/docs_formula_model_p.png) | ![mineru模型解析效果](docs/images/docs_formula_model_m.png) |
+
+对公式的提取均表现良好，paddle模型能够更精确的可视化还原部分公式内容。
+同时两个均支持提取图片，将支持图片中的文本内容识别，敬请期待！
+
+
 
 ## 本地部署
 

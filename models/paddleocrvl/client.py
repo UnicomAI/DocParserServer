@@ -23,6 +23,7 @@ def extract_images_from_md(md_content, image_dir):
         # 构造本地图片完整路径
         image_path = os.path.abspath(os.path.join(image_dir, img_filename))
 
+        logger.info(f"extracting images done for file: {image_path}")
         # 图片不存在：跳过替换
         if not os.path.exists(image_path):
             logger.warn(f"warning：image does not exist. {img_filename} 在目录 {image_dir} 中不存在，跳过替换")
@@ -85,5 +86,6 @@ class PaddleOCRVLClient:
         if extract_image and md_content:
             logger.info(f"extracting images for file: {file_path}")
             md_content = extract_images_from_md(md_content,"./data/images")
+        logger.info(f"extracting images done for file: {file_path}")
         md_content = extract_text_with_tables(md_content)
         return md_content
