@@ -86,12 +86,12 @@ paddle模型更精确的还原表格结构和文本。
 ## 本地部署
 
 ### 通过镜像安装(推荐)
-镜像中包含python，conda等服务运行需要的依赖和模型。
+镜像中包含python，conda等服务运行需要的依赖和模型。下面提供了不同cpu架构，GPU资源，以及paddle和mineru两种模型镜像部署方式，**请选择下面一种适合您场景的模型与硬件资源**组合方式进行部署。
 
 #### 基于PaddleOCRVL vllm推理加速的镜像，性能与效果均有显著提升
 如果您是Nvidia显卡用户，且CUDA驱动版本≥550.xx.xx, 建议使用基于paddleocr的专用推理镜像，目前仅支持在x86架构上运行。
 ```bash
-# arm64
+# x86/amd64
 docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251112-amd64-paddle
 docker pull ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-genai-vllm-server:latest-offline
 ```
