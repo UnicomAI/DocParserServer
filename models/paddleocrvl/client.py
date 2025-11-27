@@ -12,38 +12,53 @@ from config import config as app_config
 logger = setup_logger(__name__, './logs/client.log')
 
 
-def extract_images_from_md(md_content, image_dir):
-    img_pattern = r'<img src="imgs/([^"]+)"'
-    matches = list(re.finditer(img_pattern, md_content))
 
-    for match in reversed(matches):
-        # match.group(0)：匹配到的完整字符串（如 <img src="imgs/xxx.jpg">）
-        # match.group(1)：捕获组1的内容（即图片文件名，如 img_in_image_box_447_254_747_368.jpg）
-        img_filename = match.group(1)
-        # 构造本地图片完整路径
-        image_path = os.path.abspath(os.path.join(image_dir, img_filename))
-
-        logger.info(f"extracting images done for file: {image_path}")
-        # 图片不存在：跳过替换
-        if not os.path.exists(image_path):
-            logger.warn(f"warning：image does not exist. {img_filename} 在目录 {image_dir} 中不存在，跳过替换")
-            continue
-
-        # 上传 MinIO 并替换链接
-        try:
-            download_link = upload_to_oss(image_path, app_config.minio_default_bucket, app_config.minio_secret_key)
-            # 构造新的 img 标签
-            new_img_tag = f'<img src="{download_link}"'
-            # 替换原内容：用新标签替换 match 匹配到的字符串
-            md_content = md_content[:match.start()] + new_img_tag + md_content[match.end():]
-        except Exception as e:
-            logger.error(f"warning：upload images and replace content error. 上传图片 {img_filename} 到 MinIO 失败：{e}，跳过替换")
-            continue
-    return md_content
 
 class PaddleOCRVLClient:
     def __init__(self, base_url):
         self.base_url = base_url
+
+    def extract_text_from_image(self, file_name):
+        try:
+            response = self.parse_file(file_name)
+        except Exception as e:
+            logger.error(f"extract_text_from_image parse_file error：{str(e)}")
+            return ""  # 捕获parse_file异常，返回空字符串兜底
+        if response.get("code") != 200:
+            logger.error(f"extract_text_from_image response is not 200：{response.get('message')}")
+            return ""
+        md_content = response.get("data", {}).get("md_content", "")
+        pattern = r'<div[^>]*>(?:[^<]*?<(?!/?div)[^<]*?)*?<img[^>]*src[^>]*>(?:<(?!/?div)[^<]*?)*?</div>'
+        md_content = re.sub(pattern, '', md_content, flags=re.S)
+        return md_content
+
+    def extract_images_from_md(self, md_content, extract_image_content, image_dir):
+        img_pattern = r'<img src="imgs/([^"]+)"'
+        matches = list(re.finditer(img_pattern, md_content))
+
+        for match in reversed(matches):
+            img_filename = match.group(1)
+            image_path = os.path.abspath(os.path.join(image_dir, img_filename))
+            logger.info(f"extracting images done for file: {image_path}")
+            if not os.path.exists(image_path):
+                logger.warn(f"warning：image does not exist. {img_filename} 在目录 {image_dir} 中不存在，跳过替换")
+                continue
+            try:
+                download_link = upload_to_oss(image_path, app_config.minio_default_bucket, app_config.minio_secret_key)
+                new_img_tag = f'<img src="{download_link}"'
+                md_content = md_content[:match.start()] + new_img_tag + md_content[match.end():]
+                # OCR提取文字
+                logger.info(f"extract_image_content is: {extract_image_content}")
+                if extract_image_content:
+                    ocr_text = self.extract_text_from_image(image_path)
+                    logger.info(rf"test only in extract_imagese_from_md: ocr_text: {ocr_text}")
+                    span_html = '<span style="display: none;">{}</span>'.format(ocr_text.strip() if ocr_text else "")
+                    md_content = re.sub(fr'<img src="{re.escape(download_link)}" [^>]*>', r'\g<0>' + span_html, md_content)
+            except Exception as e:
+                logger.error(
+                    f"warning：upload images and replace content error. 上传图片 {img_filename} 到 MinIO 失败：{e}，跳过替换")
+                continue
+        return md_content
 
     @log_time
     def parse_file(self, file_path):
@@ -79,13 +94,13 @@ class PaddleOCRVLClient:
             raise
 
 
-    def post_process(self, extract_image, file_name, file_path, response):
+    def post_process(self, extract_image, extract_image_content, file_name, file_path, response):
         data = response.get("data", {})
         md_content = data.get("md_content", "")
         save_images_res_to_local(file_name, data)
         if extract_image and md_content:
             logger.info(f"extracting images for file: {file_path}")
-            md_content = extract_images_from_md(md_content,"./data/images")
+            md_content = self.extract_images_from_md(md_content, extract_image_content,"./data/images")
         logger.info(f"extracting images done for file: {file_path}")
         md_content = extract_text_with_tables(md_content)
         return md_content
