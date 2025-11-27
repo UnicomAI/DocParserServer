@@ -10,7 +10,7 @@ def init_mineru_client(address: str) -> MineruClient:
 
 def init_paddleocrvl_client(address: str) -> PaddleOCRVLClient:
     """paddleocrvl模型的Client初始化策略（示例）"""
-    return PaddleOCRVLClient(address)
+    return PaddleOCRVLClient("http://localhost:5000/file_parse")
 
 CLIENT_STRATEGIES: Dict[str, Callable[[str], Any]] = {
     "mineru": init_mineru_client,
