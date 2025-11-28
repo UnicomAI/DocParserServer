@@ -232,16 +232,31 @@ docker run -d \
 
 <span style="color:red;font-weight:bold;"> 注意：docker run中的环境变量参数，需要根据实际情况进行修改。</span>
 
+#### 环境变量配置方法：
+
+##### 场景1：独立部署使用文档解析服务的环境变量
 | 环境变量              | 定义                                                                                                           |
 |-------------------|--------------------------------------------------------------------------------------------------------------|
 | MODEL_TYPE        | 使用的模型类型，MinerU镜像无需配置，其他镜像需要选择模型类型，枚举如下：mineru/paddleocrvl。                                                   |
 | MODEL_ADDRESS     | 模型服务的调用地址。仅选择除mineru外的模型需要配置，paddleocrvl配置方式：http://{ip}:8118/v1（ip为宿主机ip）                                   |
-| USE_CUSTOM_MINIO  | 是否使用自定义minio。默认false，设置为true后可以不依赖万悟平台独立使用，不需要配置BFF_SERVICE_MINIO环境变量。                                       |
+| USE_CUSTOM_MINIO  | 设置为true，使用自定义MinIO服务。                                     |
 | MINIO_ADDRESS     | MinIO服务的地址，通过万悟使用本服务时复用万悟的minio地址。默认加入wanwu-net网络，通过minio-wanwu:9000访问，无需修改。自定义minio服务填写ip:port（不要加http://）。 |
 | MINIO_ACCESS_KEY  | MinIO服务的ak，默认root。                                                                                           |
 | MINIO_SECRET_KEY  | MinIO服务的sk，<span style="color:red;">无有效默认值，必须自行填写</span>。                                                    |
-| BFF_SERVICE_MINIO | 万悟MinIO服务api地址，用于获取图片在minio的访问地址，以实现图片展示，通过万悟使用本服务时无需修改。配置自定义minio服务可忽略此参数。                                  |
-| STIRLING_ADDRESS  | 如要解析doc\docx\ppt\pptx文档，则需要配置此参数，否则不需要配置。参数赋值使用本机ip+映射的端口默认8080。                                             |
+| STIRLING_ADDRESS  | 仅解析doc\docx\ppt\pptx文档需要，否则忽略此参数。参数赋值使用本机ip+映射的端口默认8080。                                             |
+
+
+##### 场景2：在万悟平台接入文档解析服务的环境变量
+| 环境变量              | 定义                                                                                                           |
+|-------------------|--------------------------------------------------------------------------------------------------------------|
+| MODEL_TYPE        | 使用的模型类型，MinerU镜像无需配置，其他镜像需要选择模型类型，枚举如下：mineru/paddleocrvl。                                                   |
+| MODEL_ADDRESS     | 模型服务的调用地址。仅选择除mineru外的模型需要配置，paddleocrvl配置方式：http://{ip}:8118/v1（ip为宿主机ip）                                   |
+| USE_CUSTOM_MINIO  | 设置为false，配置万悟平台的MinIO服务，已实现在智能问答时可以展示文档解析后提取到的图片。                                       |
+| MINIO_ADDRESS     | MinIO服务的地址，通过万悟使用本服务时复用万悟的minio地址。默认加入wanwu-net网络，通过minio-wanwu:9000访问，无需修改。自定义minio服务填写ip:port（不要加http://）。 |
+| MINIO_ACCESS_KEY  | MinIO服务的ak，默认root。                                                                                           |
+| MINIO_SECRET_KEY  | MinIO服务的sk，<span style="color:red;">无有效默认值，必须自行填写</span>。                                                    |
+| BFF_SERVICE_MINIO | 万悟MinIO服务api地址，用于获取图片在MinIO地址，默认为：http://bff-service:6668/v1/api/deploy/info。通常无需修改，除非您在部署万悟时修改了访问MinIO的链接。                                  |
+| STIRLING_ADDRESS  | 仅解析doc\docx\ppt\pptx文档需要，否则忽略此参数。参数赋值使用本机ip+映射的端口默认8080。                                             |
 
 
 ### 通过源码安装
@@ -318,7 +333,12 @@ bash start_app.sh
 |----------------|---------------|------|------------------------------|
 | `file_name`    | string        | 是   | 需要解析的文档名（如 `file_name.pdf`）。 |
 | `file`         | multipart file| 是   | 需要解析的文档文件的文件流（参考已支持的文件类型）。   |
-| `extract_image`| 整数          | 否   | 是否提取图片：<br>0：不提取<br>1：提取（默认） |
+| `extract_image`| string          | 否   | 是否提取图片：<br>0：不提取<br>1：提取（默认） |
+
+如果是基于paddleocr的模型，还可以选择是否提取图片中的文字。
+| 参数名         | 类型           | 必选 | 描述                           |
+|----------------|---------------|------|------------------------------|
+| `extract_image_content`    | string        | 是   | 是否提取图片：<br>0：不提取(默认), <br>1：提取 |
 
 #### 响应示例
 
