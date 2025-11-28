@@ -129,7 +129,6 @@ def model_parser_file():
                 "trace_id": get_trace_id()
             }), 500
         logger.info("start to parse file: %s", file_name)
-        response = client.parse_file(file_path)
         # 无模型mock返回测试
         # response = {
         #     "results": {
