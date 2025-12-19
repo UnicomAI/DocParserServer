@@ -133,7 +133,7 @@
   
 |            文本指标             |       公式指标        | 表格指标 | 阅读顺序指标 |
 |:-------------------------:|:---------------------:| :---: |  :---: |
-| ![原图](docs/images/文本指标.png) | ![Paddle模型解析效果](docs/images/公式指标.png) | ![mineru模型解析效果](docs/images/表格指标.png) | ![mineru模型解析效果](docs/images阅读顺序指标.png) | 
+| ![原图](docs/images/文本指标.png) | ![Paddle模型解析效果](docs/images/公式指标.png) | ![mineru模型解析效果](docs/images/表格指标.png) | ![mineru模型解析效果](docs/images/阅读顺序指标.png) | 
 
 </div>
 
