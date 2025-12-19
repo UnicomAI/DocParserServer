@@ -58,6 +58,85 @@
   
 - **多种运行环境**：支持纯CPU环境运行，并支持GPU(CUDA)/NPU(mineru已适配)加速
 
+### OmniDocBench 1.5评测集效果评测
+
+元景万悟高精度文档解析服务在权威开源数据集OmniDocBench 1.5上完成性能指标评测，综合指标**与PaddleOCR-VL模型基本持平**（其中公式指标高出0.4%），**综合指标和各项指标均超过MinerU2.5**，解析精度达到业界领先水平。
+
+<table align="center" border="1" cellpadding="6" cellspacing="0">
+  <thead>
+    <!-- 第一行表头：合并table列 -->
+    <tr>
+      <th align="center">文档解析模型</th>
+      <th align="center">overall</th>
+      <th align="center">text</th>
+      <th align="center">formula</th>
+      <th align="center" colspan="2">table</th> <!-- 合并2个table单元格 -->
+      <th align="center">reading order</th>
+    </tr>
+    <!-- 第二行表头：仅table列显示子指标 -->
+    <tr>
+      <th align="center"></th> <!-- 空单元格 -->
+      <th align="center"></th> <!-- 空单元格 -->
+      <th align="center">Normalized edit distance</th>
+      <th align="center">CDM</th>
+      <th align="center">TEDS</th> <!-- table子指标1 -->
+      <th align="center">TEDS_structure</th> <!-- table子指标2 -->
+      <th align="center">Normalized edit distance</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td align="center"><strong>联通元景万悟文档解析服务</strong></td> <!-- 加粗 -->
+      <td align="center">92.92</td>
+      <td align="center">0.035</td>
+      <td align="center">91.64</td>
+      <td align="center">90.71</td> <!-- table-TEDS -->
+      <td align="center">94.57</td> <!-- table-TEDS_structure -->
+      <td align="center">0.044</td>
+    </tr>
+    <tr>
+      <td align="center">paddleOCR-VL</td>
+      <td align="center">92.86</td>
+      <td align="center">0.035</td>
+      <td align="center">91.22</td>
+      <td align="center">90.89</td>
+      <td align="center">94.76</td>
+      <td align="center">0.043</td>
+    </tr>
+    <tr>
+      <td align="center">mineru2.5</td>
+      <td align="center">90.67</td>
+      <td align="center">0.047</td>
+      <td align="center">88.46</td>
+      <td align="center">88.22</td>
+      <td align="center">92.38</td>
+      <td align="center">0.044</td>
+    </tr>
+    <!-- 新增 MonkeyOCR-pro-3B 行 -->
+    <tr>
+      <td align="center">MonkeyOCR-pro-3B</td>
+      <td align="center">88.85</td>
+      <td align="center">0.075</td>
+      <td align="center">87.25</td>
+      <td align="center">86.78</td>
+      <td align="center">90.63</td>
+      <td align="center">0.128</td>
+    </tr>
+  </tbody>
+</table>
+
+<div align="center">
+<img width="493" height="252" alt="image" src="https://github.com/user-attachments/assets/9ad07822-a2db-4836-b76c-276cfab3dfd5" />
+</div>
+
+<div align="center">
+  
+|            文本指标             |       公式指标        | 表格指标 | 阅读顺序指标 |
+|:-------------------------:|:---------------------:| :---: |  :---: |
+| ![原图](docs/images/文本指标.png) | ![Paddle模型解析效果](docs/images/公式指标.png) | ![mineru模型解析效果](docs/images/表格指标.png) | ![mineru模型解析效果](docs/images/阅读顺序指标.png) | 
+
+</div>
+
 ## 文档解析效果展示
 文本内容解析：
 |            原图             |       paddleocrvl 解析结果        | mineru 解析结果 |
@@ -79,7 +158,8 @@ paddle模型更精确的还原表格结构和文本。
 | ![原图](docs/images/docs_formula.png) | ![Paddle模型解析效果](docs/images/docs_formula_model_p.png) | ![mineru模型解析效果](docs/images/docs_formula_model_m.png) |
 
 对公式的提取均表现良好，paddle模型能够更精确的可视化还原部分公式内容。
-同时两个均支持提取图片，将支持图片中的文本内容识别，敬请期待！
+同时基于这两种模型的服务均支持提取图片链接。即将支持图片中的文本内容识别，敬请期待！
+
 
 
 
