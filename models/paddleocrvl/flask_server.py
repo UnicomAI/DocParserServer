@@ -8,13 +8,16 @@ import base64
 import io
 import sys
 
-from models.paddleocrvl.utils import meger_json_structure
 
 config_dir = "/app/DocParserServer-main"
 if config_dir not in sys.path:
     sys.path.append(config_dir)
 from config import config
+logger_dir = "/app/DocParserServer-main/utils"
+if logger_dir not in sys.path:
+    sys.path.append(logger_dir)
 from utils.log_utils import setup_logger
+from utils import merge_json_structure
 # 初始化 Flask 应用
 app = Flask(__name__)
 logger = setup_logger(__name__, './flask_server.log')
@@ -117,7 +120,7 @@ def pdf_to_markdown():
         }
         if return_json:
             try:
-                json_data = meger_json_structure(current_output_path, f"{file_stem}")
+                json_data = merge_json_structure(current_output_path, f"{file_stem}")
                 result_data["json_data"] = json_data
             except Exception as e:
                 app.logger.error(f"对{current_output_path}路径下的{file_stem}合并JSON结构失败：{e}", exc_info=True)
