@@ -3,7 +3,7 @@ import json
 import glob
 
 
-def meger_json_structure(folder_path: str,
+def merge_json_structure(folder_path: str,
                          file_basename: str):
     json_pattern = os.path.join(folder_path, f"{file_basename}_*.json")
     json_files = glob.glob(json_pattern)

@@ -54,7 +54,9 @@
   
 - **多语言支持**：OCR功能支持多种语言的检测和识别
   
-- **标准格式**：支持按Markdown标准格式输出，对大模型理解格式更友好
+- **MarkDown格式输出**：支持按Markdown标准格式输出，对大模型理解格式更友好
+
+- **JSON格式输出**：支持按JSON结构化格式输出，对结构细粒度的提取、解析效果优化以及需求二次开发友好
   
 - **多种运行环境**：支持纯CPU环境运行，并支持GPU(CUDA)/NPU(mineru已适配)加速
 
@@ -174,7 +176,7 @@ paddle模型更精确的还原表格结构和文本。
 ##### 步骤1：拉取模型服务基础镜像
 ```bash
 # x86/amd64
-docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251112-amd64-paddle
+docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.3-20260116-amd64-paddle
 docker pull ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-genai-vllm-server:latest-offline
 ```
 ##### 步骤2：启动模型服务容器
@@ -409,16 +411,50 @@ bash start_app.sh
 
 ##### 请求体（Form Data）
 
-| 参数名         | 类型           | 必选 | 描述                           |
-|----------------|---------------|------|------------------------------|
-| `file_name`    | string        | 是   | 需要解析的文档名（如 `file_name.pdf`）。 |
-| `file`         | multipart file| 是   | 需要解析的文档文件的文件流（参考已支持的文件类型）。   |
-| `extract_image`| string          | 否   | 是否提取图片：<br>0：不提取<br>1：提取（默认） |
+| 参数名                     | 类型           | 必选 | 描述                           |
+|-------------------------|---------------|------|------------------------------|
+| `file_name`             | string        | 是   | 需要解析的文档名（如 `file_name.pdf`）。 |
+| `file`                  | multipart file| 是   | 需要解析的文档文件的文件流（参考已支持的文件类型）。   |
+| `extract_image`         | string          | 否   | 是否提取图片：<br>0：不提取<br>1：提取（默认） |
 
-如果是基于paddleocr的模型，还可以选择是否提取图片中的文字。
+如果是基于paddleocrvl的版本，还可以选择是否提取图片中的文字，以及返回JSON格式的解析结果。
+
 | 参数名         | 类型           | 必选 | 描述                           |
 |----------------|---------------|------|------------------------------|
 | `extract_image_content`    | string        | 是   | 是否提取图片：<br>0：不提取(默认), <br>1：提取 |
+| `return_json`    | string        | 是   | 是否提取图片：<br>false：不提取(默认), <br>true：提取 |
+
+###### JSON结构定义
+```json
+{
+  "parsing_res_list_merge": [
+    {
+      "block_label": "doc_title", 
+      "block_content": "第 10 章 石油沥青船补充规定",
+      "block_bbox": [
+        384,
+        172,
+        802,
+        208
+      ],
+      "block_id": 0,
+      "block_order": 1,
+      "group_id": 0,
+      "block_page_no": 1
+    }
+  ]
+}
+```
+| 参数名         | 类型           | 描述                                                                                                        |
+|----------------|---------------|-----------------------------------------------------------------------------------------------------------|
+| `block_label`    | string        | 文本块标签：类型如下：doc_title/paragraph_title/text/number/image/display_formula/figure_title/table/vision_footnote |
+| `block_content`    | string        | 文本块内容                                                                                                     |
+| `block_bbox`    | list[int]        | 文本块在文档中的左上角和右下角坐标，格式为[x1, y1, x2, y2]                                                                               |
+| `block_id`    | int        | 文本块在文档中的ID，从0开始，按1递增                                                                                                     |
+| `block_order`    | int        | 文本块在文档中的顺序，从1开始，按1递增                                                                                                     |
+| `group_id`    | int        | 文本块所属的组ID，默认与block_id一致                                                                                                     |
+| `block_page_no`    | int        | 文本块所在文档页码                                                                                                     |
+
 
 #### 响应示例
 
@@ -427,11 +463,37 @@ bash start_app.sh
 {
     "code": "200",
     "content": "#sample content title \n ## content",
+    "json_content": "",
     "message": "文档处理完成",
     "status": "success",
     "trace_id": "060b05bb-8356-44a4-94a6-d4812670ddcc"
 }
 ```
+
+```json
+{
+    "code": "200",
+    "content": "#sample content title \n ## content",
+    "json_content": "[{"block_bbox": 
+            [
+                172,
+                144,
+                1016,
+                332
+            ],
+            "block_content": "sample content",
+            "block_id": 0,
+            "block_label": "text",
+            "block_order": 1,
+            "block_page_no": 1,
+            "group_id": 0
+        }]",
+    "message": "文档处理完成",
+    "status": "success",
+    "trace_id": "060b05bb-8356-44a4-94a6-d4812670ddcc"
+}
+```
+
 ##### 错误响应（400/500 failed）
 ```json
 {

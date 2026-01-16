@@ -5,6 +5,9 @@ PORT=${DOC_PARSER_SERVER_PORT:-8083}
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 APP_PATH="$SCRIPT_DIR/app.py"
 
+export MODEL_TYPE="paddleocrvl"
+export MODEL_ADDRESS="http://localhost:5000/file_parse"
+
 # 检查端口是否被占用
 PID=$(lsof -t -i:$PORT)
 
