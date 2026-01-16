@@ -6,6 +6,7 @@ import requests
 from models.paddleocrvl.table_process_utils import extract_text_with_tables
 from utils.file_utils import save_images_res_to_local, upload_to_oss
 from utils.log_utils import setup_logger
+from utils.minio_utils import upload_file_to_minio
 from utils.monitor_utils import log_time
 from config import config as app_config
 
@@ -32,6 +33,42 @@ class PaddleOCRVLClient:
         md_content = re.sub(pattern, '', md_content, flags=re.S)
         return md_content
 
+    def extract_images_from_json(self, json_data, extract_image_content, image_dir):
+        for item in json_data:
+            block_label = item.get('block_label', '').lower()
+            if any(img_type in block_label for img_type in ['image', 'chart', 'footer_image', 'header_image']):
+                block_content = item.get('block_content', '')
+                img_filename = os.path.basename(block_content) if block_content else ''
+                if not img_filename:
+                    logger.warning(f"warning：image block_content is empty: {item}")
+                    continue
+                image_path = os.path.abspath(os.path.join(image_dir, img_filename))
+                if not os.path.exists(image_path):
+                    logger.warning(f"warning：image does not exist. {img_filename} 在目录 {image_dir} 中不存在，跳过替换")
+                    continue
+
+                try:
+                    download_link = upload_file_to_minio(
+                        image_path
+                    )
+
+                    new_block_content = f'<img src="{download_link}" />'
+                    item['block_content'] = new_block_content
+
+                    if extract_image_content:
+                        ocr_text = self.extract_text_from_image(image_path)
+                        logger.info(f"image content extracted is: {ocr_text}")
+                        if ocr_text and ocr_text.strip():
+                            span_html = f'<span style="display: none;">{ocr_text.strip()}</span>'
+                            item['block_content'] = f'<img src="{download_link}" />{span_html}'
+                except Exception as e:
+                    logger.error(
+                        f"warning：upload images and replace content error. "
+                        f"上传图片 {img_filename} 到 OSS 失败：{e}，跳过替换"
+                    )
+                    continue
+        return json_data
+
     def extract_images_from_md(self, md_content, extract_image_content, image_dir):
         img_pattern = r'<img src="imgs/([^"]+)"'
         matches = list(re.finditer(img_pattern, md_content))
@@ -44,7 +81,7 @@ class PaddleOCRVLClient:
                 logger.warn(f"warning：image does not exist. {img_filename} 在目录 {image_dir} 中不存在，跳过替换")
                 continue
             try:
-                download_link = upload_to_oss(image_path, app_config.minio_default_bucket, app_config.minio_secret_key)
+                download_link = upload_file_to_minio(image_path)
                 new_img_tag = f'<img src="{download_link}"'
                 md_content = md_content[:match.start()] + new_img_tag + md_content[match.end():]
                 # OCR提取文字
@@ -61,7 +98,9 @@ class PaddleOCRVLClient:
         return md_content
 
     @log_time
-    def parse_file(self, file_path):
+    def parse_file(self,
+                   file_path: str,
+                   return_json: bool = False):
         file_name = os.path.basename(file_path)
         _, file_ext = os.path.splitext(file_name)
         if(file_ext not in [".pdf", ".jpg", ".jpeg", ".png"]):
@@ -76,12 +115,15 @@ class PaddleOCRVLClient:
                              "application/pdf"  # MIME类型，明确是PDF文件
                              )
                 }
+                data = {
+                    "return_json": str(return_json).lower()  # 将布尔值转换为小写字符串
+                }
                 # 发送POST请求（超时设为300秒，适配大文件处理）
-                response = requests.post(self.base_url, files=files, timeout=300)
+                response = requests.post(self.base_url, files=files, data=data, timeout=300)
                 response.raise_for_status()
                 # 记录日志
                 response_data = response.json()
-                logger.info(f"response is: {response_data}")
+                # logger.info(f"response is: {response_data}")
                 return response_data
         except requests.HTTPError as e:
             logger.info(f"paddleocr request HTTPError：{e}")
@@ -94,13 +136,22 @@ class PaddleOCRVLClient:
             raise
 
 
-    def post_process(self, extract_image, extract_image_content, file_name, file_path, response):
+    def post_process(self, extract_image,
+                     extract_image_content,
+                     file_name,
+                     file_path,
+                     return_json,
+                     response):
         data = response.get("data", {})
         md_content = data.get("md_content", "")
+        json_content = data.get("json_data", "")
         save_images_res_to_local(file_name, data)
         if extract_image and md_content:
             logger.info(f"extracting images for file: {file_path}")
             md_content = self.extract_images_from_md(md_content, extract_image_content,"./data/images")
+        if extract_image and return_json:
+            logger.info(f"extracting json images for file: {file_path}")
+            json_content = self.extract_images_from_json(json_content, extract_image_content, "./data/images")
         logger.info(f"extracting images done for file: {file_path}")
         md_content = extract_text_with_tables(md_content)
-        return md_content
+        return md_content, json_content

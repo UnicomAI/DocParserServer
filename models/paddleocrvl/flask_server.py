@@ -7,6 +7,9 @@ import os
 import base64
 import io
 import sys
+
+from models.paddleocrvl.utils import meger_json_structure
+
 config_dir = "/app/DocParserServer-main"
 if config_dir not in sys.path:
     sys.path.append(config_dir)
@@ -29,6 +32,7 @@ pipeline = PaddleOCRVL(vl_rec_backend="vllm-server", vl_rec_server_url=config.mo
 @app.route("/file_parse", methods=["POST"])
 def pdf_to_markdown():
     try:
+        return_json = request.form.get('return_json', 'false').lower() == 'true'
         # 1. 检查请求中是否包含文件
         if "file" not in request.files:
             return jsonify({
@@ -74,6 +78,7 @@ def pdf_to_markdown():
             md_info = res.markdown
             markdown_list.append(md_info)
             markdown_images.append(md_info.get("markdown_images", {}))
+            res.save_to_json(save_path=current_output_path)
 
         # 9. 拼接 Markdown 文本
         markdown_texts = pipeline.concatenate_markdown_pages(markdown_list)
@@ -105,17 +110,24 @@ def pdf_to_markdown():
                     # 拼接 Base64 数据头部（保存函数会自动拆分）
                     images_base64[img_filename] = f"data:image/{img_filename.split('.')[-1]};base64,{base64_str}"
         # 12. 返回结果
+        result_data = {
+            "predict_time_cost": f"{predict_cost}秒",
+            "md_content": markdown_texts,
+            "images": images_base64
+        }
+        if return_json:
+            try:
+                json_data = meger_json_structure(current_output_path, f"{file_stem}")
+                result_data["json_data"] = json_data
+            except Exception as e:
+                app.logger.error(f"对{current_output_path}路径下的{file_stem}合并JSON结构失败：{e}", exc_info=True)
+                result_data["json_data"] = None
+        # 12. 返回结果
         return jsonify({
             "code": 200,
             "message": "转换成功",
-            "data": {
-                "predict_time_cost": f"{predict_cost}秒",
-                "md_content": markdown_texts,
-                # "markdown_file_abs_path": os.path.abspath(str(md_file_path)),
-                # "image_abs_paths": image_abs_paths,
-                "images": images_base64
-            }
-        }),200,{'Content-Type': 'application/json; charset=utf-8'}
+            "data": result_data,
+        }), 200, {'Content-Type': 'application/json; charset=utf-8'}
 
     except Exception as e:
         logger.error(f"转换失败：{e}", exc_info=True)
