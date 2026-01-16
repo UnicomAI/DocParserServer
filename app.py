@@ -104,6 +104,7 @@ def model_parser_file():
     # 获取请求参数
     extract_image = data.get('extract_image', "1")
     extract_image_content = int(data.get('extract_image_content', 0))
+    return_json = data.get('return_json', 'False').lower() == 'true'
     file_path = ""
     try:
         # 保存文件到本地
@@ -138,12 +139,17 @@ def model_parser_file():
         #         }
         #     }
         # }
-        response = client.parse_file(file_path)
+        response = client.parse_file(file_path, return_json)
         logger.info(f"parse done! started to post process file: {file_path}")
-        md_content = client.post_process(extract_image, extract_image_content, file_name, file_path, response)
+        md_content,json_content = client.post_process(extract_image=extract_image,
+                            extract_image_content=extract_image_content,
+                            file_name=file_name,
+                            file_path=file_path,
+                            return_json=return_json,
+                            response=response)
         logger.info(f"post process done! Finished. {file_path}")
 
-        return jsonify({"code": "200","status": "success","message": "文档处理完成","content": md_content,"trace_id": get_trace_id()})
+        return jsonify({"code": "200","status": "success","message": "文档处理完成","content": md_content,"json_content":json_content,"trace_id": get_trace_id()})
 
     except Exception as e:
         # 获取当前的堆栈跟踪信息

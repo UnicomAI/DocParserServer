@@ -13,7 +13,9 @@ class MineruClient:
         self.base_url = base_url
 
     @log_time
-    def parse_file(self, file_path):
+    def parse_file(self,
+                   file_path: str,
+                   return_json: bool = False):
         endpoint = f"{self.base_url}"
         # modify if needed, please refer to mineru documentation: https://github.com/opendatalab/MinerU/blob/master/mineru/cli/fast_api.py async def parse_pdf
         payload = {
@@ -44,7 +46,12 @@ class MineruClient:
                 logger.info(f"请求异常：{e}")
                 raise
 
-    def post_process(self, extract_image, file_name, file_path, response):
+    def post_process(self, extract_image,
+                     extract_image_content,
+                     file_name,
+                     file_path,
+                     return_json,
+                     response):
         results = response["results"][file_name.rsplit('.', 1)[0]]
         md_content = results.get('md_content')
         save_images_res_to_local(file_name, results)
