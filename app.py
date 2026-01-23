@@ -66,21 +66,7 @@ def model_parser_file():
             "trace_id": get_trace_id()
         }), 400
 
-    schema = ModelParserFileSchema()
     data = request.form.to_dict()
-    try:
-        schema.load(data)
-    except ValidationError as err:
-        error_messages = []
-        for field, messages in err.messages.items():
-            error_messages.extend(messages)
-        return jsonify({
-            "code": "400",
-            "status": "failed",
-            "message": "; ".join(error_messages),
-            "content": "",
-            "trace_id": get_trace_id()
-        }), 400
 
     logger.info(f"request data is: {data}")
     file_name = data.get('file_name', None)
@@ -102,7 +88,7 @@ def model_parser_file():
             "trace_id": get_trace_id()
         }), 400
     # 获取请求参数
-    extract_image = data.get('extract_image', "1")
+    extract_image = data.get('extract_image', 'False').lower() == 'true'
     extract_image_content = int(data.get('extract_image_content', 0))
     return_json = data.get('return_json', 'False').lower() == 'true'
     file_path = ""

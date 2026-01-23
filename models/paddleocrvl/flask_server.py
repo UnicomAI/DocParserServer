@@ -16,7 +16,7 @@ from config import config
 logger_dir = "/app/DocParserServer-main/utils"
 if logger_dir not in sys.path:
     sys.path.append(logger_dir)
-from utils.log_utils import setup_logger
+from log_utils import setup_logger
 from utils import merge_json_structure
 # 初始化 Flask 应用
 app = Flask(__name__)
@@ -130,7 +130,7 @@ def pdf_to_markdown():
             "code": 200,
             "message": "转换成功",
             "data": result_data,
-        }), 200, {'Content-Type': 'application/json; charset=utf-8'}
+        }), 200
 
     except Exception as e:
         logger.error(f"转换失败：{e}", exc_info=True)
