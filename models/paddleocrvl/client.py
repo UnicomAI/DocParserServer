@@ -19,6 +19,7 @@ class PaddleOCRVLClient:
     def __init__(self, base_url):
         self.base_url = base_url
 
+    @log_time
     def extract_text_from_image(self, file_name):
         try:
             response = self.parse_file(file_name)
@@ -33,6 +34,7 @@ class PaddleOCRVLClient:
         md_content = re.sub(pattern, '', md_content, flags=re.S)
         return md_content
 
+    @log_time
     def extract_images_from_json(self, json_data, extract_image_content, image_dir):
         for item in json_data:
             block_label = item.get('block_label', '').lower()
@@ -69,6 +71,7 @@ class PaddleOCRVLClient:
                     continue
         return json_data
 
+    @log_time
     def extract_images_from_md(self, md_content, extract_image_content, image_dir):
         img_pattern = r'<img src="imgs/([^"]+)"'
         matches = list(re.finditer(img_pattern, md_content))

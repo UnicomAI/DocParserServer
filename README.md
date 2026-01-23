@@ -25,7 +25,7 @@
 </div>
 
 
-&emsp;&emsp;**万悟文档解析服务**是一款面向**企业级**场景的通用文档解析服务，通过引入AI能力和多种业界领先的视觉文档解析模型，精准、高效的将各类文档转化为 Markdown 结构化标准格式，支持提取文档中的多模态元素，例如表格、公式、图片等，将复杂多模态知识转换为结构化的表示有助于大语言模型对这些多模态知识的理解。借助该服务，预先将各类非结构化文档提取内容成文本信息后，再把结构化的文本信息写入知识库进行向量索引构建，可以显著提升RAG知识问答、智能体知识库节点等知识问答场景的效果。该服务依赖**元景万悟智能体平台**([github项目地址](https://github.com/UnicomAI/wanwu/edit/main/README_CN.md))，需要与平台共同使用。目前服务已支持 pdf, png, jpeg, jpg, webp, gif, doc, docx, ppt, pptx类型的文档。未来将持续扩展支持文档的类型，如html等。目前已经支持MinerU解析和PaddleOCR-VL解析，已经适配和支持MinerU模型在NPU上的推理，未来将支持更多SOTA文档解析模型能力，敬请期待！
+&emsp;&emsp;**万悟文档解析服务**是一款面向**企业级**场景的通用文档解析服务，通过引入AI能力和多种业界领先的视觉文档解析模型，精准、高效的将各类文档转化为 Markdown 结构化标准格式，支持提取文档中的多模态元素，例如表格、公式、图片等，将复杂多模态知识转换为结构化的表示有助于大语言模型对这些多模态知识的理解。借助该服务，预先将各类非结构化文档提取内容成文本信息后，再把结构化的文本信息写入知识库进行向量索引构建，可以显著提升RAG知识问答、智能体知识库节点等知识问答场景的效果。该服务可独立使用，也可作为模型服务配置接入**元景万悟智能体平台**([github项目地址](https://github.com/UnicomAI/wanwu/edit/main/README_CN.md))供知识库文档解析使用。目前服务已接入PaddleOCR-VL、MinerU等业界主流模型，并在业界首发了PaddleOCR-VL、MinerU模型的昇腾910B部署镜像，在原生模型对pdf和图片文件基础上扩展了对doc, docx, ppt, pptx等文档的支持。未来将提供更多文档解析模型增益能力，敬请期待！
 
 ------
 
@@ -104,6 +104,15 @@
       <td align="center">90.89</td>
       <td align="center">94.76</td>
       <td align="center">0.043</td>
+    </tr>
+    <tr>
+      <td align="center">联通元景万悟文档解析910B</td>
+      <td align="center">92.62</td>
+      <td align="center">0.036</td>
+      <td align="center">91.51</td>
+      <td align="center">89.96</td> <!-- table-TEDS -->
+      <td align="center">93.50</td> <!-- table-TEDS_structure -->
+      <td align="center">0.045</td>
     </tr>
     <tr>
       <td align="center">mineru2.5</td>
@@ -207,7 +216,45 @@ docker run \
 ```
 
 ---
-#### 方案二：基于MinerU在ARM64架构，通过CPU或Nvidia显卡推理的部署方案
+#### 方案二：基于PaddleOCR-VL模型，在ARM架构，通过华为昇腾系列910B显卡推理的部署方案，性能与效果在同样硬件资源下最优
+##### 步骤1：拉取模型服务基础镜像
+```bash
+# arm64
+docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.3-20260123-arm64-paddle-910b
+```
+##### 步骤2：启动模型服务容器
+```bash
+# 启动doc_parser_server容器
+docker run --rm \
+    --name doc_parser \
+    -p 8083:8083 \
+    --network wanwu-net \  #如果不与万悟平台集成使用服务，则删除本行
+    --restart always \
+    -e USE_CUSTOM_MINIO="false" \  #如果不与万悟平台集成使用服务，则设置为True，使用自定义Minio
+    -e MINIO_ADDRESS="minio-wanwu:9000" \
+    -e MINIO_ACCESS_KEY="root" \
+    -e MINIO_SECRET_KEY="your_sk" \
+    -e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \  #如果不与万悟平台集成使用服务，则删除本行
+    -e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \  #如果不使用扩展功能1：多类型文档解析，则删除本行
+    --shm-size=10g \
+    --device /dev/davinci0 \   # 替换成你需要的卡
+    --device /dev/davinci_manager \
+    --device /dev/devmm_svm \
+    --device /dev/hisi_hdc \
+    -v /usr/local/dcmi:/usr/local/dcmi \
+    -v /usr/local/Ascend/driver/tools/hccn_tool:/usr/local/Ascend/driver/tools/hccn_tool \
+    -v /usr/local/bin/npu-smi:/usr/local/bin/npu-smi \
+    -v /usr/local/Ascend/driver/lib64/:/usr/local/Ascend/driver/lib64/ \
+    -v /usr/local/Ascend/driver/version.info:/usr/local/Ascend/driver/version.info \
+    -v /etc/ascend_install.info:/etc/ascend_install.info \
+    -v /root/.cache:/root/.cache \
+    crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.3-20260123-arm64-paddle-910b \
+    /bin/bash -c "chmod +x /app/docker_start_all.sh && /app/docker_start_all.sh"
+```
+
+
+---
+#### 方案三：基于MinerU在ARM64架构，通过CPU或Nvidia显卡推理的部署方案
 ##### 步骤1：拉取模型服务基础镜像
 ```bash
 # arm64
@@ -231,7 +278,7 @@ sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
 ```
 
 ---
-#### 方案三：基于MinerU在X86_64架构，通过CPU或Nvidia显卡推理的部署方案
+#### 方案四：基于MinerU在X86_64架构，通过CPU或Nvidia显卡推理的部署方案
 ##### 步骤1：拉取模型服务基础镜像
 ```bash
 # x86_64
@@ -255,7 +302,7 @@ sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
 ```
 
 ---
-#### 方案四：基于MinerU在arm64架构，通过华为昇腾910B NPU推理的部署方案
+#### 方案五：基于MinerU在arm64架构，通过华为昇腾910B NPU推理的部署方案
 ##### 步骤1：拉取模型服务基础镜像
 ```bash
 # arm64
@@ -411,11 +458,11 @@ bash start_app.sh
 
 ##### 请求体（Form Data）
 
-| 参数名                     | 类型           | 必选 | 描述                           |
-|-------------------------|---------------|------|------------------------------|
-| `file_name`             | string        | 是   | 需要解析的文档名（如 `file_name.pdf`）。 |
-| `file`                  | multipart file| 是   | 需要解析的文档文件的文件流（参考已支持的文件类型）。   |
-| `extract_image`         | string          | 否   | 是否提取图片：<br>0：不提取<br>1：提取（默认） |
+| 参数名                     | 类型           | 必选 | 描述                                  |
+|-------------------------|---------------|------|-------------------------------------|
+| `file_name`             | string        | 是   | 需要解析的文档名（如 `file_name.pdf`）。        |
+| `file`                  | multipart file| 是   | 需要解析的文档文件的文件流（参考已支持的文件类型）。          |
+| `extract_image`         | string          | 否   | 是否提取图片：<br>False：不提取（默认）<br>True：提取 |
 
 如果是基于paddleocrvl的版本，还可以选择是否提取图片中的文字，以及返回JSON格式的解析结果。
 
