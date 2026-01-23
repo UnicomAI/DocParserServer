@@ -54,9 +54,9 @@
   
 - **多语言支持**：OCR功能支持多种语言的检测和识别
   
-- **标准格式**：支持按Markdown标准格式输出，对大模型理解格式更友好
+- **MarkDown格式输出**：支持按Markdown标准格式输出，对大模型理解格式更友好
 
-- **二次开发**：支持按JSON结构化格式输出，对结构的提取、优化等二次开发更友好
+- **JSON格式输出**：支持按JSON结构化格式输出，对结构细粒度的提取、解析效果优化以及需求二次开发友好
   
 - **多种运行环境**：支持纯CPU环境运行，并支持GPU(CUDA)/NPU(mineru已适配)加速
 
@@ -496,11 +496,11 @@ bash start_app.sh
 |----------------|---------------|-----------------------------------------------------------------------------------------------------------|
 | `block_label`    | string        | 文本块标签：类型如下：doc_title/paragraph_title/text/number/image/display_formula/figure_title/table/vision_footnote |
 | `block_content`    | string        | 文本块内容                                                                                                     |
-| `block_bbox`    | list[int]        | 文本块在图片中的坐标，格式为[x1, y1, x2, y2]                                                                               |
-| `block_id`    | int        | 文本块在文档中的ID                                                                                                     |
-| `block_order`    | int        | 文本块在文档中的顺序                                                                                                     |
-| `group_id`    | int        | 文本块所属的组ID                                                                                                     |
-| `block_page_no`    | int        | 文本块所在页码                                                                                                     |
+| `block_bbox`    | list[int]        | 文本块在文档中的左上角和右下角坐标，格式为[x1, y1, x2, y2]                                                                               |
+| `block_id`    | int        | 文本块在文档中的ID，从0开始，按1递增                                                                                                     |
+| `block_order`    | int        | 文本块在文档中的顺序，从1开始，按1递增                                                                                                     |
+| `group_id`    | int        | 文本块所属的组ID，默认与block_id一致                                                                                                     |
+| `block_page_no`    | int        | 文本块所在文档页码                                                                                                     |
 
 
 #### 响应示例
