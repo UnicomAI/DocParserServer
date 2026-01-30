@@ -248,8 +248,8 @@ docker run --rm \
     -v /usr/local/Ascend/driver/version.info:/usr/local/Ascend/driver/version.info \
     -v /etc/ascend_install.info:/etc/ascend_install.info \
     -v /root/.cache:/root/.cache \
-    crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.3-20260123-arm64-paddle-910b \
-    /bin/bash -c "chmod +x /app/docker_start_all.sh && /app/docker_start_all.sh"
+    crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.3-20260130-arm64-paddle-910b \
+    bash -c "chmod +x /app/docker_start_all.sh && /app/docker_start_all.sh"
 ```
 
 
@@ -511,9 +511,11 @@ bash start_app.sh
     "code": "200",
     "content": "#sample content title \n ## content",
     "json_content": "",
+    "prefix_image_url": "http://127.0.0.1:9000/rag-public",
     "message": "文档处理完成",
     "status": "success",
-    "trace_id": "060b05bb-8356-44a4-94a6-d4812670ddcc"
+    "trace_id": "060b05bb-8356-44a4-94a6-d4812670ddcc",
+    "version": "private"
 }
 ```
 
@@ -535,9 +537,11 @@ bash start_app.sh
             "block_page_no": 1,
             "group_id": 0
         }]",
+    "prefix_image_url": "http://127.0.0.1:9000/rag-public",
     "message": "文档处理完成",
     "status": "success",
-    "trace_id": "060b05bb-8356-44a4-94a6-d4812670ddcc"
+    "trace_id": "060b05bb-8356-44a4-94a6-d4812670ddcc",
+    "version": "private"
 }
 ```
 
