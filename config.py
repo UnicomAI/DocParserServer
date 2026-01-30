@@ -32,5 +32,6 @@ class AppConfig(metaclass=SingletonMeta):
     minio_address: str = os.getenv("MINIO_ADDRESS", "minio-wanwu:9000")
     minio_access_key: str = os.getenv("MINIO_ACCESS_KEY", "root")
     minio_secret_key: str = os.getenv("MINIO_SECRET_KEY", "your_sk")
+    version: str = os.getenv("version", "private")
 
 config = AppConfig()
