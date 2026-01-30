@@ -220,7 +220,7 @@ docker run \
 ##### 步骤1：拉取模型服务基础镜像
 ```bash
 # arm64
-docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.3-20260123-arm64-paddle-910b
+docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.3-20260130-arm64-paddle-910b
 ```
 ##### 步骤2：启动模型服务容器
 ```bash
