@@ -37,9 +37,19 @@ def health_check():
     """服务健康检查接口"""
     return jsonify({"code": "200", "status": "healthy", "service": "doc_parser_server"})
 
-class ModelParserFileSchema(Schema):
-    file_name = fields.Str(required=True, error_messages={"required": "file_name is required"})
-    extract_image = fields.Int(required=False)
+def api_response(code: str, status: str, message: str, content: str = "", json_content: str = "", **kwargs):
+    res_dict = {
+        "code": code,
+        "status": status,
+        "message": message,
+        "content": content,
+        "json_content": json_content,
+        "trace_id": get_trace_id(),
+        "version": config.version,
+        "prefix_image_url": "https://obs-nmhhht6.cucloud.cn/doc-rag-public"
+    }
+    res_dict.update(kwargs)
+    return jsonify(res_dict)
 
 @app.route('/rag/model_parser_file', methods=['POST'])
 @log_time
@@ -50,45 +60,42 @@ def model_parser_file():
     # 参数校验
     file = request.files.get('file')
     if not file:
-        return jsonify({
-                "code": "400",
-                "status": "failed",
-                "message": f"请上传文件",
-                "content": "",
-                "trace_id": get_trace_id()
-            }), 400
+        return api_response(
+            code="400",
+            status="failed", 
+            message=f"请上传文件",
+            content=""
+        )
+        
     if not file.filename.lower().endswith(ALLOWED_FILE_EXTENSIONS):
-        return jsonify({
-            "code": "400",
-            "status": "failed",
-            "message": "上传的文件类型错误",
-            "content": "",
-            "trace_id": get_trace_id()
-        }), 400
+        return api_response(
+            code="400",
+            status="failed",
+            message="上传的文件类型错误", 
+            content=""
+        )
 
     data = request.form.to_dict()
 
     logger.info(f"request data is: {data}")
     file_name = data.get('file_name', None)
     if not file_name.lower().endswith(ALLOWED_FILE_EXTENSIONS):
-        return jsonify({
-            "code": "400",
-            "status": "failed",
-            "message": "上传的文件扩展名错误",
-            "content": "",
-            "trace_id": get_trace_id()
-        }), 400
+        return api_response(
+            code="400",
+            status="failed",
+            message="上传的文件扩展名错误",
+            content=""
+        )
     normalized_path = os.path.normpath(file_name)
     if normalized_path.startswith(('..', '/', '\\')):  # 防止跨目录访问
-        return jsonify({
-            "code": "400",
-            "status": "failed",
-            "message": "文件名包含非法字符: ..或/或\\",
-            "content": "",
-            "trace_id": get_trace_id()
-        }), 400
+        return api_response(
+            code="400",
+            status="failed",
+            message="文件名包含非法字符: ..或/或\\",
+            content=""
+        )
     # 获取请求参数
-    extract_image = data.get('extract_image', 'False').lower() == 'true'
+    extract_image = str(data.get('extract_image', 'False')).lower() in ('true', '1')
     extract_image_content = int(data.get('extract_image_content', 0))
     return_json = data.get('return_json', 'False').lower() == 'true'
     file_path = ""
@@ -96,25 +103,23 @@ def model_parser_file():
         # 保存文件到本地
         file_path = save_file_to_local(file, file_name)
         if not file_path:
-            return jsonify({
-                "code": "500",
-                "status": "failed",
-                "message": f"File save failed. file_name: {file_name}",
-                "content": "",
-                "trace_id": get_trace_id()
-            }), 500
+            return api_response(
+                code="500",
+                status="failed",
+                message=f"File save failed. file_name: {file_name}",
+                content=""
+            )
         logger.info(f"File downloaded and saved to {file_path}")
         # 根据配置调模型
         # 转换为PDF
         file_path = convert_to_pdf(file_path)
         if not file_path.lower().endswith(MODEL_FILE_EXTENSIONS):
-            return jsonify({
-                "code": "500",
-                "status": "failed",
-                "message": f"File type is supported, but convert to model input(pdf/image) failed. Check file converter service. File_name: {file_name}",
-                "content": "",
-                "trace_id": get_trace_id()
-            }), 500
+            return api_response(
+                code="500",
+                status="failed",
+                message=f"File type is supported, but convert to model input(pdf/image) failed. Check file converter service. File_name: {file_name}",
+                content=""
+            )
         logger.info("start to parse file: %s", file_name)
         # 无模型mock返回测试
         # response = {
@@ -127,7 +132,7 @@ def model_parser_file():
         # }
         response = client.parse_file(file_path, return_json)
         logger.info(f"parse done! started to post process file: {file_path}")
-        md_content,json_content = client.post_process(extract_image=extract_image,
+        md_content, json_content, prefix_image_url = client.post_process(extract_image=extract_image,
                             extract_image_content=extract_image_content,
                             file_name=file_name,
                             file_path=file_path,
@@ -135,7 +140,14 @@ def model_parser_file():
                             response=response)
         logger.info(f"post process done! Finished. {file_path}")
 
-        return jsonify({"code": "200","status": "success","message": "文档处理完成","content": md_content,"json_content":json_content,"trace_id": get_trace_id()})
+        return api_response(
+            code="200",
+            status="success",
+            message="文档处理完成",
+            content=md_content,
+            json_content=json_content,
+            prefix_image_url=prefix_image_url
+        )
 
     except Exception as e:
         # 获取当前的堆栈跟踪信息
@@ -145,12 +157,12 @@ def model_parser_file():
         # 记录详细的错误信息，包括 trace_id 和堆栈跟踪
         logger.error(f"Error occurred. Trace ID: {trace_id}. Exception: {e}. Stack Trace: {stack_trace}")
         # 返回处理结果
-        return jsonify({"code": "500",
-            "status": "failed",
-            "message": str(e),
-            "content": "",
-            "trace_id": get_trace_id()
-        }), 500
+        return api_response(
+            code="500",
+            status="failed",
+            message=str(e),
+            content=""
+        )
     finally:
         # 删除存的原始文件
         try:

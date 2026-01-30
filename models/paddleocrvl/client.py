@@ -73,8 +73,18 @@ class PaddleOCRVLClient:
 
     @log_time
     def extract_images_from_md(self, md_content, extract_image_content, image_dir):
-        img_pattern = r'<img src="imgs/([^"]+)"'
+        import urllib.parse
+
+        def extract_base_url(url):
+            """从完整URL中提取基础路径，例如从 https://example.com/path/file.jpg?param=value 提取 https://example.com/path/"""
+            parsed_url = urllib.parse.urlparse(url)
+            path_parts = parsed_url.path.rsplit('/', 1)
+            base_path = path_parts[0] + '/' if len(path_parts) > 1 else parsed_url.path
+            return f"{parsed_url.scheme}://{parsed_url.netloc}{base_path}"
+
+        img_pattern = r'<div[^>]*>.*?<img src="imgs/([^"]+)"[^>]*?>.*?</div>'
         matches = list(re.finditer(img_pattern, md_content))
+        prefix_image_url = "https://obs-nmhhht6.cucloud.cn/doc-rag-public"
 
         for match in reversed(matches):
             img_filename = match.group(1)
@@ -85,20 +95,25 @@ class PaddleOCRVLClient:
                 continue
             try:
                 download_link = upload_file_to_minio(image_path)
-                new_img_tag = f'<img src="{download_link}"'
-                md_content = md_content[:match.start()] + new_img_tag + md_content[match.end():]
+                ocr_text = ""
                 # OCR提取文字
                 logger.info(f"extract_image_content is: {extract_image_content}")
                 if extract_image_content:
                     ocr_text = self.extract_text_from_image(image_path)
-                    logger.info(rf"test only in extract_imagese_from_md: ocr_text: {ocr_text}")
-                    span_html = '<span style="display: none;">{}</span>'.format(ocr_text.strip() if ocr_text else "")
-                    md_content = re.sub(fr'<img src="{re.escape(download_link)}" [^>]*>', r'\g<0>' + span_html, md_content)
+                    filter_pattern = r'[^\u4e00-\u9fa5a-zA-Z0-9\s]'
+                    logger.info(rf"image content extracted is:: {ocr_text}")
+                    ocr_text = re.sub(r'<[^>]+>', '', ocr_text)  # 过滤所有HTML标签（<div>、</div>等）
+                    ocr_text = re.sub(r'[\n\r]', '', ocr_text)  # 过滤换行符\n、回车符\r
+                    ocr_text = ocr_text.strip()  # 先去掉标签/换行后的首尾空格
+                    ocr_text = re.sub(filter_pattern, "", ocr_text)
+                new_img_tag = f'![{ocr_text}]({download_link})'
+                md_content = md_content[:match.start()] + new_img_tag + md_content[match.end():]
+                prefix_image_url = download_link
             except Exception as e:
                 logger.error(
                     f"warning：upload images and replace content error. 上传图片 {img_filename} 到 MinIO 失败：{e}，跳过替换")
                 continue
-        return md_content
+        return md_content,extract_base_url(prefix_image_url)
 
     @log_time
     def parse_file(self,
@@ -148,13 +163,14 @@ class PaddleOCRVLClient:
         data = response.get("data", {})
         md_content = data.get("md_content", "")
         json_content = data.get("json_data", "")
+        prefix_image_url = "https://obs-nmhhht6.cucloud.cn/doc-rag-public"
         save_images_res_to_local(file_name, data)
         if extract_image and md_content:
             logger.info(f"extracting images for file: {file_path}")
-            md_content = self.extract_images_from_md(md_content, extract_image_content,"./data/images")
+            md_content, prefix_image_url = self.extract_images_from_md(md_content, extract_image_content,"./data/images")
         if extract_image and return_json:
             logger.info(f"extracting json images for file: {file_path}")
             json_content = self.extract_images_from_json(json_content, extract_image_content, "./data/images")
         logger.info(f"extracting images done for file: {file_path}")
         md_content = extract_text_with_tables(md_content)
-        return md_content, json_content
+        return md_content, json_content, prefix_image_url

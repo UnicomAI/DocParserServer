@@ -59,4 +59,4 @@ class MineruClient:
         if extract_image and md_content:
             logger.info(f"extracting images for file: {file_path}")
             md_content = extract_images_from_md(md_content, "./data/images")
-        return md_content
+        return md_content, "", ""
