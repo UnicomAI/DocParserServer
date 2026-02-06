@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 from paddleocr import PaddleOCRVL
 import time
@@ -9,11 +10,11 @@ import io
 import sys
 
 
-config_dir = "/app/DocParserServer-main"
+config_dir = "/app/DocParserServer"
 if config_dir not in sys.path:
     sys.path.append(config_dir)
 from config import config
-logger_dir = "/app/DocParserServer-main/utils"
+logger_dir = "/app/DocParserServer/utils"
 if logger_dir not in sys.path:
     sys.path.append(logger_dir)
 from log_utils import setup_logger
@@ -30,12 +31,16 @@ Path(UPLOAD_FOLDER).mkdir(parents=True, exist_ok=True)
 Path(OUTPUT_FOLDER).mkdir(parents=True, exist_ok=True)
 
 # 初始化 PaddleOCRVL 实例（全局单例，避免重复初始化）
-pipeline = PaddleOCRVL(vl_rec_backend="vllm-server", vl_rec_server_url=config.model_address) # "http://127.0.0.1:8118/v1"
+pipeline = PaddleOCRVL(vl_rec_backend="vllm-server",
+                       vl_rec_server_url=config.model_address,
+                       vl_rec_max_concurrency=32,
+                       format_block_content=True) # "http://127.0.0.1:8118/v1"
 
 @app.route("/file_parse", methods=["POST"])
 def pdf_to_markdown():
     try:
         return_json = request.form.get('return_json', 'false').lower() == 'true'
+        extract_image_content = request.form.get('extract_image_content', 'false').lower() in ('true', '1')
         # 1. 检查请求中是否包含文件
         if "file" not in request.files:
             return jsonify({
@@ -70,57 +75,50 @@ def pdf_to_markdown():
 
         # 7. 执行 OCR 转换
         start_time = time.time()
-        output = pipeline.predict(input=str(upload_file_path))
+        output = []
+        for result in pipeline.predict_iter(input=str(upload_file_path),
+                                             use_ocr_for_image_block=extract_image_content):
+            output.append(result)
         end_time = time.time()
         predict_cost = round(end_time - start_time, 2)
         logger.info(f"finished call vllm server: {upload_file_path}, cost: {predict_cost}s")
-        # 8. 处理结果
-        markdown_list = []
-        markdown_images = []
-        for res in output:
-            md_info = res.markdown
-            markdown_list.append(md_info)
-            markdown_images.append(md_info.get("markdown_images", {}))
-            res.save_to_json(save_path=current_output_path)
 
-        # 9. 拼接 Markdown 文本
-        markdown_texts = pipeline.concatenate_markdown_pages(markdown_list)
+        try:
+            if upload_file_path.exists() and upload_file_path.is_file():  # 确保是文件且存在
+                upload_file_path.unlink()  # 删除文件
+        except Exception as e:
+            # 仅记录错误，不中断后续流程
+            app.logger.error(f"删除原始上传文件失败：{upload_file_path} | 错误信息：{str(e)}")
 
-        # 10. 保存 Markdown 文件
-        md_file_path = current_output_path / f"{file_stem}.md"
-        md_file_path.parent.mkdir(parents=True, exist_ok=True)
-        with open(md_file_path, "w", encoding="utf-8") as f:
-            f.write(markdown_texts)
+        res = pipeline.restructure_pages(res_list=output, merge_tables=True, relevel_titles= True, concatenate_pages= True)
+        res[0].save_to_markdown(save_path=current_output_path)
+        res[0].save_to_json(save_path=current_output_path)
 
-        # 11. 保存图片并收集绝对路径
-        image_abs_paths = []
-        images_base64 = {}
-        for item in markdown_images:
-            if item:
-                for path, image in item.items():
-                    img_file_path = current_output_path / path
-                    img_file_path.parent.mkdir(parents=True, exist_ok=True)
-                    image.save(img_file_path)
-                    # 获取绝对路径
-                    image_abs_paths.append(os.path.abspath(str(img_file_path)))
+        # 读取md文件（路径：current_output_path/file_stem.md）
+        md_file = current_output_path / f"{file_stem}.md"
+        with open(md_file, "r", encoding="utf-8") as f:
+            markdown_texts = f.read()
 
-                    # 新增：将图片转为 Base64 编码（带数据头部，适配保存函数）
-                    img_filename = Path(path).name  # 提取图片文件名（如 "img1.png"）
-                    buffer = io.BytesIO()  # 内存缓冲区
-                    image.save(buffer, format='jpeg')  # 按图片格式保存
-                    buffer.seek(0)
-                    base64_str = base64.b64encode(buffer.getvalue()).decode("utf-8")  # 编码为字符串
-                    # 拼接 Base64 数据头部（保存函数会自动拆分）
-                    images_base64[img_filename] = f"data:image/{img_filename.split('.')[-1]};base64,{base64_str}"
-        # 12. 返回结果
+        # 读取图片（路径：current_output_path/imgs）
+        images_dict = {}
+        imgs_dir = current_output_path / "imgs"
+        if imgs_dir.exists():
+            for img_path in sorted(imgs_dir.glob("*")):
+                filename = img_path.name
+                with open(img_path, "rb") as img_f:
+                    base64_str = base64.b64encode(img_f.read()).decode("utf-8")
+                    images_dict[filename] = f"data:image/{filename.split('.')[-1]};base64,{base64_str}"
+
         result_data = {
             "predict_time_cost": f"{predict_cost}秒",
             "md_content": markdown_texts,
-            "images": images_base64
+            "images": images_dict
         }
         if return_json:
             try:
-                json_data = merge_json_structure(current_output_path, f"{file_stem}")
+                json_file = current_output_path / f"{file_stem}_res.json"
+                with open(json_file, "r", encoding="utf-8") as f:
+                    json_data = json.load(f)
                 result_data["json_data"] = json_data
             except Exception as e:
                 app.logger.error(f"对{current_output_path}路径下的{file_stem}合并JSON结构失败：{e}", exc_info=True)
