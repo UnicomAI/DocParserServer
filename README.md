@@ -147,7 +147,7 @@
 </table>
 
 <div align="center">
-<img width="493" height="252" alt="image" src="https://github.com/user-attachments/assets/9ad07822-a2db-4836-b76c-276cfab3dfd5" />
+  <img src="docs/images/综合指标.png" alt="综合指标" width="493" height="252">
 </div>
 
 <div align="center">
