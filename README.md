@@ -30,6 +30,14 @@
 ------
 
 
+## 📢近期更新
+
+🔥 **2026.2.6**: 新增基于PaddleOCR-VL 1.5的文档解析推理任务（基于英伟达系列显卡，华为910B适配中，敬请期待），跨页表格自动聚合，JSON结构化数据block_content字段结构化展示。
+
+
+------
+
+
 ## 功能介绍
 
 支持多类型文档解析并按markdown标准格式输出，支持标题层级、表格、公式、图片等复杂多模知识高质量解析。
@@ -37,9 +45,9 @@
 其中：
 - 表格转换为HTML格式输出
 - 公式以LaTeX语法格式输出
-- 图片以Minio链接输出
+- 图片以Minio链接/本地链接输出
 
-同时支持云端试用与私有化部署，开源部署镜像参见：[本地部署](#本地部署)
+同时支持联通元景MaaS API的云端调用与私有化部署，开源部署镜像参见：[本地部署](#本地部署)
 
 
 ### 文档解析的关键特点
@@ -49,7 +57,9 @@
 - **公式转换**：自动识别文档中的公式并转换为LaTeX格式
   
 - **表格转换**：自动识别文档中的表格并转换为HTML格式
-  
+
+- **跨页表格合并**：自动合并文档中的跨页表格，保持表格结构和表头信息
+
 - **OCR功能**：自动检测扫描版PDF和乱码PDF，并启用OCR功能
   
 - **多语言支持**：OCR功能支持多种语言的检测和识别
@@ -89,12 +99,12 @@
   <tbody>
     <tr>
       <td align="center"><strong>联通元景万悟文档解析服务</strong></td> <!-- 加粗 -->
-      <td align="center">92.92</td>
-      <td align="center">0.035</td>
-      <td align="center">91.64</td>
-      <td align="center">90.71</td> <!-- table-TEDS -->
-      <td align="center">94.57</td> <!-- table-TEDS_structure -->
-      <td align="center">0.044</td>
+      <td align="center">94.53</td>
+      <td align="center">0.034</td>
+      <td align="center">94.49</td>
+      <td align="center">91.65</td> <!-- table-TEDS -->
+      <td align="center">94.66</td> <!-- table-TEDS_structure -->
+      <td align="center">0.042</td>
     </tr>
     <tr>
       <td align="center">paddleOCR-VL</td>
@@ -180,13 +190,13 @@ paddle模型更精确的还原表格结构和文本。
 镜像中包含python，conda等服务运行需要的依赖和模型。下面提供了不同cpu架构，GPU资源，以及paddle和mineru两种模型镜像部署方式，**请选择下面一种适合您场景的模型与硬件资源**组合方式进行部署。
 
 ---
-#### 方案一：基于PaddleOCR-VL模型，在X86架构，通过Nvidia显卡推理的部署方案，性能与效果最优
+#### 方案一：基于PaddleOCR-VL 1.5模型，在X86架构，通过Nvidia显卡推理的部署方案，性能与效果最优
 如果您是Nvidia显卡用户，且CUDA驱动版本≥550.xx.xx, 建议使用基于paddleocr的专用推理镜像，目前仅支持在x86架构上运行。
 ##### 步骤1：拉取模型服务基础镜像
 ```bash
 # x86/amd64
-docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.3-20260116-amd64-paddle
-docker pull ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-genai-vllm-server:latest-offline
+docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.3-20260205-amd64-paddle
+docker pull ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-genai-fastdeploy-server:latest-nvidia-gpu-offline
 ```
 ##### 步骤2：启动模型服务容器
 ```bash
@@ -211,7 +221,7 @@ docker run \
     --rm \
     --gpus all \
     --network host \
-    ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-genai-vllm-server:latest \
+    ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-genai-fastdeploy-server:latest-nvidia-gpu-offline \
     paddleocr genai_server --model_name PaddleOCR-VL-0.9B --host 0.0.0.0 --port 8118 --backend vllm
 ```
 
