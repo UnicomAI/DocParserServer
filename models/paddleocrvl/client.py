@@ -161,6 +161,7 @@ class PaddleOCRVLClient:
                      return_json,
                      response):
         data = response.get("data", {})
+        logger.info(f"data is: {data}")
         md_content = data.get("md_content", "")
         json_content = data.get("json_data", "")
         prefix_image_url = "https://obs-nmhhht6.cucloud.cn/doc-rag-public"
