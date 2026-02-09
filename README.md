@@ -348,6 +348,26 @@ docker run -d \
 ```
 
 ---
+#### 系统依赖
+如果推理服务在推理过程中报错500，查看日志发现是pdfium等模型调用时的错误，可能是缺失系统依赖。请安装如下依赖：
+```bash
+# 有网的服务器上执行下载
+apt download $(apt-cache depends --recurse --no-recommends --no-suggests \
+  --no-conflicts --no-breaks --no-replaces --no-enhances \
+  --no-pre-depends \
+  libpoppler-cpp0v5 libjpeg8 libpng16-16 libtiff5 fontconfig libfreetype6 libc6-dev fonts-wqy-zenhei ttf-wqy-microhei | \
+  grep "^\w" | sort -u)
+zip -r offline_deps.zip *.deb
+# 在无外网的服务器上执行安装
+mkdir -p /tmp/offline_debs && cd /tmp/offline_debs
+unzip offline_deps.zip
+dpkg -i *.deb
+修复依赖（若有）+ 刷新字体缓存
+apt-get -f install --no-download
+fc-cache -fv
+```
+
+---
 #### 扩展功能1: 多类型文档解析, 如需要直接输入doc\docx\ppt\pptx文档进行解析, 则需要额外安装此部分功能
 ##### 步骤1：拉取模型服务基础镜像
 ```bash
