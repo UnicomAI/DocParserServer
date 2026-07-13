@@ -135,20 +135,19 @@ class OSSStorage(StorageBase):
     def get_download_url(self, object_name: str, bucket_name: Optional[str] = None,
                          expires: int = 3600 * 24 * 7) -> str:
         """
-        获取文件下载链接（签名 URL，默认 7 天有效期）
+        获取文件下载链接（公开 URL，永不过期）
+
+        公共读写桶无需签名，直接拼接公开访问地址。
+        保留 expires 参数以兼容外部调用，但不再使用。
 
         Args:
             object_name: 对象名称
             bucket_name: 桶名称（可选，暂不支持切换桶）
-            expires: URL 有效期（秒），默认 7 天
+            expires: 已弃用，保留参数兼容性
 
         Returns:
-            str: 下载链接
+            str: 公开下载链接
         """
-        # 生成预签名 URL
-        signed_url = self.client.generate_presigned_url(
-            'get_object',
-            Params={'Bucket': self.bucket, 'Key': object_name},
-            ExpiresIn=expires
-        )
-        return signed_url
+        # 公共桶：拼接公开 URL，无有效期限制
+        # 格式: {endpoint}/{bucket}/{object_name}
+        return f"{self.endpoint}/{self.bucket}/{object_name}"
