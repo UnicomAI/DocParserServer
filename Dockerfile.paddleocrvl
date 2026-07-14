@@ -1,0 +1,34 @@
+# ============================================================
+# DocParserServer — PaddleOCRVL 专用镜像
+# 包含 paddleocr 及其系统依赖（OpenGL、X11 等）
+# ============================================================
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# paddleocr 需要的系统底层库（OpenCV 图像处理 + Paddle 推理）
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends \
+        libgl1-mesa-glx \
+        libglib2.0-0 \
+        libsm6 \
+        libxext6 \
+        libxrender-dev \
+        libgomp1 \
+        && rm -rf /var/lib/apt/lists/*
+
+# 复制 paddleocrvl 专用依赖并安装
+COPY requirements.paddleocrvl.txt .
+RUN pip install --no-cache-dir -r requirements.paddleocrvl.txt
+
+# 复制项目代码
+COPY . .
+
+# 确保日志目录存在
+RUN mkdir -p logs data/images data/raw data/processed
+
+# 暴露服务端口
+EXPOSE 8083
+
+# 启动服务
+CMD ["python", "app.py"]

@@ -111,15 +111,16 @@ def model_parser_file():
             )
         logger.info(f"File downloaded and saved to {file_path}")
         # 根据配置调模型
-        # 转换为PDF
-        file_path = convert_to_pdf(file_path)
-        if not file_path.lower().endswith(MODEL_FILE_EXTENSIONS):
-            return api_response(
-                code="500",
-                status="failed",
-                message=f"File type is supported, but convert to model input(pdf/image) failed. Check file converter service. File_name: {file_name}",
-                content=""
-            )
+        # MinerU 3.0 原生支持 pdf/图片/docx/pptx/xlsx，不需要转换
+        if config.model_type != "mineru":
+            file_path = convert_to_pdf(file_path)
+            if not file_path.lower().endswith(MODEL_FILE_EXTENSIONS):
+                return api_response(
+                    code="500",
+                    status="failed",
+                    message=f"File type is supported, but convert to model input(pdf/image) failed. Check file converter service. File_name: {file_name}",
+                    content=""
+                )
         # 如果是图片类型，强制关闭 extract_image（图片本身无需再提取图片）
         if file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.webp', '.gif')):
             extract_image = False

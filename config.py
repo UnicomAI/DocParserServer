@@ -33,6 +33,13 @@ class AppConfig(metaclass=SingletonMeta):
     minio_access_key: str = os.getenv("MINIO_ACCESS_KEY", "root")
     minio_secret_key: str = os.getenv("MINIO_SECRET_KEY", "your_sk")
 
+    # MinerU 3.0 配置项
+    mineru_backend: str = os.getenv("MINERU_BACKEND", "hybrid-engine")
+    mineru_lang_list: str = os.getenv("MINERU_LANG_LIST", "ch")
+    mineru_effort: str = os.getenv("MINERU_EFFORT", "medium")
+    mineru_server_url: str = os.getenv("MINERU_SERVER_URL", "")
+    mineru_image_analysis: str = os.getenv("MINERU_IMAGE_ANALYSIS", "false")
+
     # OSS 存储类型配置
     # 可选值: minio (默认), oss
     oss_type: str = os.getenv("OSS_TYPE", "minio").strip().lower()
