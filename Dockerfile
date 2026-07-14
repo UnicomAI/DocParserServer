@@ -10,7 +10,8 @@ FROM python:3.10-slim
 WORKDIR /app
 
 # paddleocr 需要的系统底层库（OpenCV 图像处理 + Paddle 推理）
-RUN apt-get update && \
+RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debian.sources && \
+    apt-get update && \
     apt-get install -y --no-install-recommends \
         libgl1-mesa-glx \
         libglib2.0-0 \
@@ -22,7 +23,7 @@ RUN apt-get update && \
 
 # 复制全量依赖
 COPY requirements.txt .
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ -r requirements.txt
 
 # 复制项目代码
 COPY . .
