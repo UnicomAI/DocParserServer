@@ -102,6 +102,14 @@ class MineruClient:
         md_content = result.get("md_content", "")
         images = result.get("images", {})  # {filename: "data:image/jpeg;base64,..."}
 
+        # 解析 content_list（return_json=true 时返回），用于结构化文档分析
+        # 注意：MinerU API 返回的 content_list 已经是 JSON 字符串，直接透传
+        json_content = ""
+        if return_json:
+            content_list = result.get("content_list")
+            if content_list:
+                json_content = content_list
+
         # prefix_image_url 默认值
         prefix_image_url = "https://obs-nmhhht6.cucloud.cn/doc-rag-public"
 
@@ -158,4 +166,4 @@ class MineruClient:
         if prefix_image_url != "https://obs-nmhhht6.cucloud.cn/doc-rag-public":
             prefix_image_url = _extract_base_url(prefix_image_url)
 
-        return md_content, "", prefix_image_url
+        return md_content, json_content, prefix_image_url
