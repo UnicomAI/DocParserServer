@@ -59,8 +59,8 @@ class MineruClient:
             "return_images": "true" if extract_image else "false",
             # extract_image_content 控制图片/图表分析
             "image_analysis": "true" if extract_image_content else "false",
-            # 默认中英文（可通过环境变量覆盖）
-            "lang_list": app_config.mineru_lang_list,
+            # lang_list 为数组格式（API 要求 array<any> 类型）
+            "lang_list": [app_config.mineru_lang_list],
             # 环境变量可配的参数（有默认值）
             "backend": app_config.mineru_backend,
             "effort": app_config.mineru_effort,

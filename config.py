@@ -35,7 +35,7 @@ class AppConfig(metaclass=SingletonMeta):
 
     # MinerU 3.0 配置项
     mineru_backend: str = os.getenv("MINERU_BACKEND", "hybrid-engine")
-    mineru_lang_list: str = os.getenv("MINERU_LANG_LIST", "ch,en")
+    mineru_lang_list: str = os.getenv("MINERU_LANG_LIST", "ch")
     mineru_effort: str = os.getenv("MINERU_EFFORT", "medium")
     mineru_server_url: str = os.getenv("MINERU_SERVER_URL", "")
 

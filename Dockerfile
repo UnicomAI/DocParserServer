@@ -19,6 +19,9 @@ RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debia
         libxext6 \
         libxrender-dev \
         libgomp1 \
+        curl \
+        lsof \
+        vim \
         && rm -rf /var/lib/apt/lists/*
 
 # 复制全量依赖
