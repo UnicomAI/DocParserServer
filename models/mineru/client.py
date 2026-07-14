@@ -126,20 +126,14 @@ class MineruClient:
                     # 上传到 OSS/MinIO
                     storage = StorageFactory.get_storage()
                     download_link = storage.upload_file(save_path)
-                    if download_link:
-                        url_map[img_filename] = download_link
+                    url_map[img_filename] = download_link
 
-                        # 上传成功后删除临时文件
-                        os.remove(save_path)
-                        logger.info(f"图片 {img_filename} 已上传 OSS: {download_link}")
+                    # 上传成功后删除临时文件
+                    os.remove(save_path)
+                    logger.info(f"图片 {img_filename} 已上传 OSS: {download_link}")
 
-                        # 记录最后一张成功上传的图片 URL，用于提取 prefix_image_url
-                        prefix_image_url = download_link
-                    else:
-                        logger.error(f"图片 {img_filename} 上传 OSS 返回空，跳过")
-                        # 上传失败也要删除临时文件，避免堆积
-                        if os.path.exists(save_path):
-                            os.remove(save_path)
+                    # 记录最后一张图片 URL，用于提取 prefix_image_url
+                    prefix_image_url = download_link
                 except Exception as e:
                     logger.error(f"处理图片 {img_filename} 失败：{e}，跳过")
                     continue
