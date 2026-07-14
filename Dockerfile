@@ -22,6 +22,7 @@ RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debia
         curl \
         lsof \
         vim \
+        wget \
         && rm -rf /var/lib/apt/lists/*
 
 # 复制全量依赖
