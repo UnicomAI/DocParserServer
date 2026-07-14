@@ -1,8 +1,9 @@
+import json
 import os
 import traceback
 import uuid
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from marshmallow import Schema, fields, ValidationError
 
@@ -35,7 +36,10 @@ def before_request():
 def health_check():
     logger.info("test log")
     """服务健康检查接口"""
-    return jsonify({"code": "200", "status": "healthy", "service": "doc_parser_server"})
+    return Response(
+        json.dumps({"code": "200", "status": "healthy", "service": "doc_parser_server"}, ensure_ascii=False),
+        content_type='application/json; charset=utf-8'
+    )
 
 def api_response(code: str, status: str, message: str, content: str = "", json_content: str = "", **kwargs):
     res_dict = {
@@ -49,7 +53,10 @@ def api_response(code: str, status: str, message: str, content: str = "", json_c
         "prefix_image_url": "https://obs-nmhhht6.cucloud.cn/doc-rag-public"
     }
     res_dict.update(kwargs)
-    return jsonify(res_dict)
+    return Response(
+        json.dumps(res_dict, ensure_ascii=False),
+        content_type='application/json; charset=utf-8'
+    )
 
 @app.route('/rag/model_parser_file', methods=['POST'])
 @log_time
