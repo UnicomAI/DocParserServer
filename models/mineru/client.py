@@ -57,17 +57,18 @@ class MineruClient:
             "return_content_list": "true" if return_json else "false",
             # extract_image 控制是否返回图片 base64
             "return_images": "true" if extract_image else "false",
-            # extract_image_content 控制图片/图表分析
-            "image_analysis": "true" if extract_image_content else "false",
             # lang_list 为数组格式（API 要求 array<any> 类型）
             "lang_list": [app_config.mineru_lang_list],
-            # 环境变量可配的参数（有默认值）
+            # 环境变量可配的参数
             "backend": app_config.mineru_backend,
-            "effort": app_config.mineru_effort,
+            # effort：extract_image_content=true 时启用高精度模式（含图片/图表分析）
+            "effort": "high" if extract_image_content else "medium",
         }
         # server_url 非空时才传递
         if app_config.mineru_server_url:
             payload["server_url"] = app_config.mineru_server_url
+
+        logger.info(f"MinerU parse_file payload: {payload}")
 
         with open(file_path, "rb") as file_obj:
             files = [
