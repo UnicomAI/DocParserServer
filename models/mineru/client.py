@@ -32,7 +32,9 @@ class MineruClient:
     @log_time
     def parse_file(self,
                    file_path: str,
-                   return_json: bool = False):
+                   return_json: bool = False,
+                   extract_image: bool = False,
+                   extract_image_content: int = 0):
         """
         调用 MinerU 3.0 /file_parse 接口解析文档
 
@@ -46,18 +48,22 @@ class MineruClient:
         if mime_type is None:
             mime_type = "application/octet-stream"
 
-        # 构建请求参数 — 分类管理
-        # 写死 true 的参数
+        # 构建请求参数
         payload = {
             "return_md": "true",
-            "return_content_list": "true",
             "formula_enable": "true",
             "table_enable": "true",
+            # return_json 开启时才返回 content_list
+            "return_content_list": "true" if return_json else "false",
+            # extract_image 控制是否返回图片 base64
+            "return_images": "true" if extract_image else "false",
+            # extract_image_content 控制图片/图表分析
+            "image_analysis": "true" if extract_image_content else "false",
+            # 默认中英文（可通过环境变量覆盖）
+            "lang_list": app_config.mineru_lang_list,
             # 环境变量可配的参数（有默认值）
             "backend": app_config.mineru_backend,
-            "lang_list": app_config.mineru_lang_list,
             "effort": app_config.mineru_effort,
-            "image_analysis": app_config.mineru_image_analysis,
         }
         # server_url 非空时才传递
         if app_config.mineru_server_url:

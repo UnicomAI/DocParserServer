@@ -35,10 +35,9 @@ class AppConfig(metaclass=SingletonMeta):
 
     # MinerU 3.0 配置项
     mineru_backend: str = os.getenv("MINERU_BACKEND", "hybrid-engine")
-    mineru_lang_list: str = os.getenv("MINERU_LANG_LIST", "ch")
+    mineru_lang_list: str = os.getenv("MINERU_LANG_LIST", "ch,en")
     mineru_effort: str = os.getenv("MINERU_EFFORT", "medium")
     mineru_server_url: str = os.getenv("MINERU_SERVER_URL", "")
-    mineru_image_analysis: str = os.getenv("MINERU_IMAGE_ANALYSIS", "false")
 
     # OSS 存储类型配置
     # 可选值: minio (默认), oss

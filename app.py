@@ -135,7 +135,7 @@ def model_parser_file():
         #         }
         #     }
         # }
-        response = client.parse_file(file_path, return_json)
+        response = client.parse_file(file_path, return_json, extract_image, extract_image_content)
         logger.info(f"parse done! started to post process file: {file_path}")
         md_content, json_content, prefix_image_url = client.post_process(extract_image=extract_image,
                             extract_image_content=extract_image_content,
