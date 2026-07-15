@@ -81,7 +81,7 @@ class MineruClient:
                 ("files", (file_name, file_obj, mime_type))
             ]
             try:
-                response = requests.post(endpoint, data=payload, files=files, timeout=300)
+                response = requests.post(endpoint, data=payload, files=files, timeout=3600)
                 response.raise_for_status()
                 response_data = response.json()
                 logger.info(f"MinerU response status: {response_data.get('status')}")
