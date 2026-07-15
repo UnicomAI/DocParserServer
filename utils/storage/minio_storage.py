@@ -98,5 +98,5 @@ class MinIOStorage(StorageBase):
         else:
             response = requests.get(self.bff_service)
             response_data = response.json()
-            endpoint = response_data['data']['webBaseUrl']
-            return f"{endpoint}{target_bucket}/{object_name}"
+            endpoint = response_data['data']['webBaseUrl'].rstrip('/')
+            return f"{endpoint}/{target_bucket}/{object_name}"

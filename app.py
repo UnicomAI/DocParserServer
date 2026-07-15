@@ -50,7 +50,7 @@ def api_response(code: str, status: str, message: str, content: str = "", json_c
         "json_content": json_content,
         "trace_id": get_trace_id(),
         "version": config.version,
-        "prefix_image_url": "https://obs-nmhhht6.cucloud.cn/doc-rag-public"
+        "prefix_image_url": "https://obs-nmhhht6.cucloud.cn/doc-rag-public/"
     }
     res_dict.update(kwargs)
     return Response(
