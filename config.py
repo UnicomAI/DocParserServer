@@ -37,6 +37,11 @@ class AppConfig(metaclass=SingletonMeta):
     mineru_backend: str = os.getenv("MINERU_BACKEND", "hybrid-engine")
     mineru_lang_list: str = os.getenv("MINERU_LANG_LIST", "ch")
     mineru_server_url: str = os.getenv("MINERU_SERVER_URL", "")
+    # 是否启用高精度提取的环境变量开关
+    # 空字符串: 使用入参 extract_image_content 控制
+    # "true"/"1": 强制开启高精度 (effort=high)
+    # "false"/"0": 强制关闭 (effort=medium)
+    mineru_effort: str = os.getenv("MINERU_EFFORT", "")
 
     # OSS 存储类型配置
     # 可选值: minio (默认), oss

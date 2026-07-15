@@ -40,6 +40,12 @@ class MineruClient:
 
         支持文档类型：PDF、图片（jpg/jpeg/png）、Word（docx）、PowerPoint（pptx）、Excel（xlsx）
         """
+        # 环境变量 MINERU_EFFORT 优先级高于入参 extract_image_content
+        # 空串: 使用入参; "true"/"1": 强制开启; "false"/"0": 强制关闭
+        env_effort = app_config.mineru_effort
+        if env_effort != "":
+            extract_image_content = 1 if env_effort.strip().lower() in ('true', '1') else 0
+
         endpoint = f"{self.base_url}/file_parse"
         file_name = os.path.basename(file_path)
 
