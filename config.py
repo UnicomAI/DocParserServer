@@ -37,10 +37,8 @@ class AppConfig(metaclass=SingletonMeta):
     mineru_backend: str = os.getenv("MINERU_BACKEND", "hybrid-engine")
     mineru_lang_list: str = os.getenv("MINERU_LANG_LIST", "ch")
     mineru_server_url: str = os.getenv("MINERU_SERVER_URL", "")
-    # 是否启用高精度提取的环境变量开关
-    # 空字符串: 使用入参 extract_image_content 控制
-    # "true"/"1": 强制开启高精度 (effort=high)
-    # "false"/"0": 强制关闭 (effort=medium)
+    # 环境变量控制 effort（优先级高于入参 extract_image_content）
+    # 空字符串: 使用入参; true/1/high → effort=high; false/0/medium → effort=medium
     mineru_effort: str = os.getenv("MINERU_EFFORT", "")
     # PDF 解析方法（仅对 pipeline/hybrid backend 生效）
     # auto: 自动判断; txt: 文本提取; ocr: OCR 方式

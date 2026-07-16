@@ -1,0 +1,98 @@
+version: "3.9"
+
+services:
+  doc-parser-server:
+    image: doc_parser_server:1.4.0-20260714-amd64-server
+    container_name: doc_parser_server
+    restart: unless-stopped
+    networks:
+      - wanwu-net
+    ports:
+      - "8083:8083"
+    environment:
+      - MODEL_TYPE=mineru
+      - MODEL_ADDRESS=http://192.168.0.194:8000
+      - USE_CUSTOM_MINIO=false
+      - OSS_TYPE=minio
+      - MINIO_ADDRESS=minio-wanwu:9000
+      - MINIO_ACCESS_KEY=root
+      - MINIO_SECRET_KEY=your_sk
+      - MINERU_EFFORT=false
+
+  mineru-cpu:
+    image: mineru:v0.0.1-cpu
+    container_name: mineru-cpu
+    restart: unless-stopped
+    shm_size: 32g
+    ipc: host
+    ports:
+      - "30000:30000"
+      - "7860:7860"
+      - "8000:8000"
+      - "8002:8002"
+
+  # ============================================================
+  # PaddleOCR-VL 1.5 — X86/amd64 + Nvidia GPU（离线推理）
+  # ============================================================
+  paddleocrvl-amd64:
+    image: ccr-2vdh3abv-pub.cnc.bj.baidubce.com/paddlepaddle/paddleocr-genai-fastdeploy-server:latest-nvidia-gpu-offline
+    container_name: paddleocrvl-amd64
+    restart: unless-stopped
+    network_mode: host
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command: >
+      paddleocr genai_server
+      --model_name PaddleOCR-VL-0.9B
+      --host 0.0.0.0 --port 8118
+      --backend vllm
+
+  # ============================================================
+  # PaddleOCR-VL — ARM64 + 华为昇腾 910B
+  # ============================================================
+  paddleocrvl-arm64:
+    image: crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.3-20260130-arm64-paddle-910b
+    container_name: paddleocrvl-arm64
+    restart: unless-stopped
+    shm_size: 10g
+    networks:
+      - wanwu-net
+    ports:
+      - "8083:8083"
+    devices:
+      - /dev/davinci0
+      - /dev/davinci_manager
+      - /dev/devmm_svm
+      - /dev/hisi_hdc
+    volumes:
+      - /usr/local/dcmi:/usr/local/dcmi
+      - /usr/local/Ascend/driver/tools/hccn_tool:/usr/local/Ascend/driver/tools/hccn_tool
+      - /usr/local/bin/npu-smi:/usr/local/bin/npu-smi
+      - /usr/local/Ascend/driver/lib64/:/usr/local/Ascend/driver/lib64/
+      - /usr/local/Ascend/driver/version.info:/usr/local/Ascend/driver/version.info
+      - /etc/ascend_install.info:/etc/ascend_install.info
+      - /root/.cache:/root/.cache
+      - ~/doc_parser/uploads:/app/DocParserServer/models/paddleocrvl/uploads
+      - ~/doc_parser/output:/app/DocParserServer/models/paddleocrvl/output
+      - ~/doc_parser/images:/app/DocParserServer/data/images
+      - ~/doc_parser/logs:/app/DocParserServer/logs
+      - ~/doc_parser/flask_server.log:/app/DocParserServer/models/paddleocrvl/flask_server.log
+      - ~/doc_parser/flask_service.log:/app/DocParserServer/models/paddleocrvl/flask_service.log
+      - ~/doc_parser/paddleocr_vllm_npu4.log:/workspace/paddleocr_vllm_npu4.log
+    environment:
+      - USE_CUSTOM_MINIO=false
+      - MINIO_ADDRESS=minio-wanwu:9000
+      - MINIO_ACCESS_KEY=root
+      - MINIO_SECRET_KEY=your_sk
+      - BFF_SERVICE_MINIO=http://bff-service:6667/v1/api/deploy/info
+    command: >
+      bash -c "chmod +x /app/docker_start_all.sh && /app/docker_start_all.sh"
+
+networks:
+  wanwu-net:
+    external: true
