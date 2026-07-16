@@ -42,6 +42,9 @@ class AppConfig(metaclass=SingletonMeta):
     # "true"/"1": 强制开启高精度 (effort=high)
     # "false"/"0": 强制关闭 (effort=medium)
     mineru_effort: str = os.getenv("MINERU_EFFORT", "")
+    # PDF 解析方法（仅对 pipeline/hybrid backend 生效）
+    # auto: 自动判断; txt: 文本提取; ocr: OCR 方式
+    mineru_parse_method: str = os.getenv("MINERU_PARSE_METHOD", "auto")
 
     # OSS 存储类型配置
     # 可选值: minio (默认), oss

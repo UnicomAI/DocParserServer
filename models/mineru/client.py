@@ -69,6 +69,8 @@ class MineruClient:
             "backend": app_config.mineru_backend,
             # effort：extract_image_content=true 时启用高精度模式（含图片/图表分析）
             "effort": "high" if extract_image_content else "medium",
+            # parse_method：仅对 pipeline/hybrid backend 生效，默认 auto
+            "parse_method": app_config.mineru_parse_method,
         }
         # server_url 非空时才传递
         if app_config.mineru_server_url:
