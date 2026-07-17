@@ -30,9 +30,9 @@ echo "主服务已启动，日志输出到 $LOG_FILE"
 
 # 如果是 paddleocrvl，额外启动 paddleocrvl 推理服务（5000 端口）
 if [ "$MODEL_TYPE" = "paddleocrvl" ]; then
-    PADDLE_APP_PATH="$SCRIPT_DIR/models/paddleocrvl/app.py"
+    PADDLE_DIR="$SCRIPT_DIR/models/paddleocrvl"
     PADDLE_LOG_FILE="$LOG_DIR/paddleocrvl_server.log"
     echo "检测到 MODEL_TYPE=paddleocrvl，正在启动 PaddleOCRVL 推理服务..."
-    nohup python "$PADDLE_APP_PATH" > "$PADDLE_LOG_FILE" 2>&1 &
+    cd "$PADDLE_DIR" && nohup bash start_flask.sh > "$PADDLE_LOG_FILE" 2>&1 &
     echo "PaddleOCRVL 推理服务已启动，日志输出到 $PADDLE_LOG_FILE"
 fi
