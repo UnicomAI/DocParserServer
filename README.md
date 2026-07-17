@@ -243,7 +243,7 @@ docker run --itd \
     -e MINIO_ADDRESS="minio-wanwu:9000" \
     -e MINIO_ACCESS_KEY="root" \
     -e MINIO_SECRET_KEY="your_sk" \
-    -e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \  #如果不与万悟平台集成使用服务，则删除本行
+    -e BFF_SERVICE_MINIO="http://bff-service:6667/v1/api/deploy/info" \  #如果不与万悟平台集成使用服务，则删除本行
     --shm-size=10g \
     --device /dev/davinci0 \   # 替换成您指定的显卡序号
     --device /dev/davinci_manager \
@@ -286,7 +286,7 @@ docker run -d --name doc_parser \
 -e MINIO_ADDRESS="minio-wanwu:9000" \
 -e MINIO_ACCESS_KEY="root" \
 -e MINIO_SECRET_KEY="your_sk" \
--e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \
+-e BFF_SERVICE_MINIO="http://bff-service:6667/v1/api/deploy/info" \
 -e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \
 crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-arm64 \
 sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
@@ -296,24 +296,55 @@ sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
 #### 方案四：基于MinerU在X86_64架构，通过CPU或Nvidia显卡推理的部署方案
 ##### 步骤1：拉取模型服务基础镜像
 ```bash
-# x86_64
-docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-amd64
+# x86_64 — server 镜像
+docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.4.0-20260716-amd64-server
+# CPU 推理拉取 mineru-cpu 镜像
+docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.4.0-20260716-amd64-mineru-cpu
+# GPU 推理拉取 mineru-gpu 镜像
+docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.4.0-20260716-amd64-mineru-gpu
 ```
 ##### 步骤2：启动模型服务容器
+
+**CPU 推理：**
+
 ```bash
-# BFF_SERVICE_MINIO依赖万悟平台的部署，部署后可以获取到这个接口
+docker run -d \
+  --name mineru-cpu \
+  --shm-size 32g \
+  -p 30000:30000 -p 7860:7860 -p 8000:8000 -p 8002:8002 \
+  --ipc=host \
+  crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.4.0-20260716-amd64-mineru-cpu
+```
+
+**GPU 推理：**
+
+```bash
+docker run -d --gpus all \
+  --name mineru-gpu \
+  --shm-size 32g \
+  -p 30000:30000 -p 7860:7860 -p 8000:8000 -p 8002:8002 \
+  --ipc=host \
+  crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.4.0-20260716-amd64-mineru-gpu \
+  mineru-api --host 0.0.0.0 --port 8000
+```
+
+**启动 doc_parser_server 容器：**
+
+```bash
 docker run -d --name doc_parser \
 -p 8083:8083 \
 --network wanwu-net \
 --restart always \
--e USE_CUSTOM_MINIO="false" \
--e MINIO_ADDRESS="minio-wanwu:9000" \
--e MINIO_ACCESS_KEY="root" \
--e MINIO_SECRET_KEY="your_sk" \
--e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \
--e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \
-crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-amd64 \
-sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
+-e MODEL_TYPE=mineru \
+-e MODEL_ADDRESS=http://192.168.0.1:8000 \
+-e USE_CUSTOM_MINIO=false \
+-e OSS_TYPE=minio \
+-e MINIO_ADDRESS=minio-wanwu:9000 \
+-e MINIO_ACCESS_KEY=root \
+-e MINIO_SECRET_KEY=your_sk \
+-e MINERU_EFFORT=medium \
+-e MINERU_BACKEND=pipeline \
+crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.4.0-20260716-amd64-server
 ```
 
 ---
@@ -346,7 +377,7 @@ docker run -d \
   -e MINIO_ADDRESS="minio-wanwu:9000" \
   -e MINIO_ACCESS_KEY="root" \
   -e MINIO_SECRET_KEY="V5EMfXAuCCx3JkjTG4jQ" \
-  -e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \
+  -e BFF_SERVICE_MINIO="http://bff-service:6667/v1/api/deploy/info" \
   -e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \
   crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251022-arm64-910b \
   bash /app/start_all.sh
@@ -419,7 +450,7 @@ docker run -d \
 | MINIO_ADDRESS     | MinIO服务的地址，通过万悟使用本服务时复用万悟的minio地址。默认加入wanwu-net网络，通过minio-wanwu:9000访问，无需修改。自定义minio服务填写ip:port（不要加http://）。 |
 | MINIO_ACCESS_KEY  | MinIO服务的ak，默认root。                                                                                           |
 | MINIO_SECRET_KEY  | MinIO服务的sk，<span style="color:red;">无有效默认值，必须自行填写</span>。                                                    |
-| BFF_SERVICE_MINIO | 万悟MinIO服务api地址，用于获取图片在MinIO地址，默认为：http://bff-service:6668/v1/api/deploy/info。通常无需修改，除非您在部署万悟时修改了访问MinIO的链接。                                  |
+| BFF_SERVICE_MINIO | 万悟MinIO服务api地址，用于获取图片在MinIO地址，默认为：http://bff-service:6667/v1/api/deploy/info。通常无需修改，除非您在部署万悟时修改了访问MinIO的链接。                                  |
 | STIRLING_ADDRESS  | 仅解析doc\docx\ppt\pptx文档需要，否则忽略此参数。参数赋值使用本机ip+映射的端口默认8080。                                             |
 
 

@@ -35,5 +35,5 @@ RUN mkdir -p logs data/images data/raw data/processed
 # 暴露服务端口
 EXPOSE 8083
 
-# 启动服务
-CMD ["python", "app.py"]
+# 启动服务（通过 start_app.sh 兼容 mineru / paddleocrvl 两种模式）
+CMD ["bash", "start_app.sh"]

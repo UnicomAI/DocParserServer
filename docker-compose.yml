@@ -2,7 +2,7 @@ version: "3.9"
 
 services:
   doc-parser-server:
-    image: doc_parser_server:1.4.0-20260714-amd64-server
+    image: crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.4.0-20260716-amd64-server
     container_name: doc_parser_server
     restart: unless-stopped
     networks:
@@ -17,10 +17,14 @@ services:
       - MINIO_ADDRESS=minio-wanwu:9000
       - MINIO_ACCESS_KEY=root
       - MINIO_SECRET_KEY=your_sk
-      - MINERU_EFFORT=false
+      - MINERU_EFFORT=medium
+      - MINERU_BACKEND=pipeline
 
+  # ============================================================
+  # MinerU — X86/amd64 CPU
+  # ============================================================
   mineru-cpu:
-    image: mineru:v0.0.1-cpu
+    image: crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.4.0-20260716-amd64-mineru-cpu
     container_name: mineru-cpu
     restart: unless-stopped
     shm_size: 32g
@@ -30,6 +34,29 @@ services:
       - "7860:7860"
       - "8000:8000"
       - "8002:8002"
+
+  # ============================================================
+  # MinerU — X86/amd64 + Nvidia GPU
+  # ============================================================
+  mineru-gpu:
+    image: crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.4.0-20260716-amd64-mineru-gpu
+    container_name: mineru-gpu
+    restart: unless-stopped
+    shm_size: 32g
+    ipc: host
+    ports:
+      - "30000:30000"
+      - "7860:7860"
+      - "8000:8000"
+      - "8002:8002"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+    command: mineru-api --host 0.0.0.0 --port 8000
 
   # ============================================================
   # PaddleOCR-VL 1.5 — X86/amd64 + Nvidia GPU（离线推理）
