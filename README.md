@@ -25,14 +25,14 @@
 </div>
 
 
-&emsp;&emsp;**万悟文档解析服务**是一款面向**企业级**场景的通用文档解析服务，通过引入AI能力和多种业界领先的视觉文档解析模型，精准、高效的将各类文档转化为 Markdown 结构化标准格式，支持提取文档中的多模态元素，例如表格、公式、图片等，将复杂多模态知识转换为结构化的表示有助于大语言模型对这些多模态知识的理解。借助该服务，预先将各类非结构化文档提取内容成文本信息后，再把结构化的文本信息写入知识库进行向量索引构建，可以显著提升RAG知识问答、智能体知识库节点等知识问答场景的效果。该服务可独立使用，也可作为模型服务配置接入**元景万悟智能体平台**([github项目地址](https://github.com/UnicomAI/wanwu/edit/main/README_CN.md))供知识库文档解析使用。目前服务已接入PaddleOCR-VL、MinerU等业界主流模型，并在业界首发了PaddleOCR-VL、MinerU模型的昇腾910B部署镜像，在原生模型对pdf和图片文件基础上扩展了对doc, docx, ppt, pptx等文档的支持。未来将提供更多文档解析模型增益能力，敬请期待！
+&emsp;&emsp;**万悟文档解析服务**是一款面向企业级场景的通用文档解析服务，通过部署此服务统一了不同模型服务协议标准，可支持将PaddleOCR、MinerU等多款文档解析模型私有化部署，并作为OCR模型在万悟智能体开发平台的模型服务中配置使用。本服务集成了多种业界领先的视觉文档解析模型，可精准、高效的将各类文档转化为 Markdown 结构化标准格式，支持提取文档中的多模态元素，例如表格、公式、图片等，将复杂多模态知识转换为结构化的表示有助于大语言模型对这些多模态知识的理解。借助该服务，预先将各类非结构化文档提取内容成文本信息后，再把结构化的文本信息写入知识库进行向量索引构建，可以显著提升RAG知识库文档解析效果。本模型服务在原生模型基础上提供了昇腾910B部署方案，并在原生模型文件类型支持上扩展了对doc, docx, ppt, pptx等多种文档的支持。未来将提供更多文档解析模型增益能力，敬请期待！
 
 ------
 
 
 ## 📢近期更新
+🔥 **2026.7.17**: 接入MinerU 3.4.4版本文档解析能力（基于英伟达系列显卡，华为910B适配中，敬请期待），其MinerU2.5-Pro解析效果为OmniDocBench1.6 SOTA模型，同时简化镜像部署方式。
 
-🔥 **2026.2.6**: 新增基于PaddleOCR-VL 1.5的文档解析推理任务（基于英伟达系列显卡，华为910B适配中，敬请期待），跨页表格自动聚合，JSON结构化数据block_content字段结构化展示。
 
 
 ------
@@ -70,9 +70,9 @@
   
 - **多种运行环境**：支持纯CPU环境运行，并支持GPU(CUDA)/NPU(mineru已适配)加速
 
-### OmniDocBench 1.5评测集效果评测
+### OmniDocBench 1.6评测集效果评测
 
-元景万悟高精度文档解析服务在权威开源数据集OmniDocBench 1.5上完成性能指标评测，综合指标**与PaddleOCR-VL模型基本持平**（其中公式指标高出0.4%），**综合指标和各项指标均超过MinerU2.5**，解析精度达到业界领先水平。
+根据权威开源数据集OmniDocBench 1.6上性能指标，**元景万悟文档解析服务已接入最新SOTA模型MinerU2.5-pro**，在MinerU 3.4.4版本中使用，解析精度达到业界领先水平。
 
 <table align="center" border="1" cellpadding="6" cellspacing="0">
   <thead>
@@ -98,13 +98,22 @@
   </thead>
   <tbody>
     <tr>
+      <td align="center"><strong>MinerU2.5-pro</strong></td>
+      <td align="center">95.75</td>
+      <td align="center">0.036</td>
+      <td align="center">97.45</td>
+      <td align="center">93.42</td>
+      <td align="center">95.92</td>
+      <td align="center">0.120</td>
+    </tr>
+    <tr>
       <td align="center"><strong>联通元景万悟文档解析服务</strong></td> <!-- 加粗 -->
       <td align="center">94.53</td>
       <td align="center">0.034</td>
       <td align="center">94.49</td>
       <td align="center">91.65</td> <!-- table-TEDS -->
       <td align="center">94.66</td> <!-- table-TEDS_structure -->
-      <td align="center">0.042</td>
+      <td align="center">0.130</td>
     </tr>
     <tr>
       <td align="center">paddleOCR-VL</td>
@@ -113,7 +122,7 @@
       <td align="center">91.22</td>
       <td align="center">90.89</td>
       <td align="center">94.76</td>
-      <td align="center">0.043</td>
+      <td align="center">0.130</td>
     </tr>
     <tr>
       <td align="center">联通元景万悟文档解析910B</td>
@@ -122,26 +131,7 @@
       <td align="center">91.51</td>
       <td align="center">89.96</td> <!-- table-TEDS -->
       <td align="center">93.50</td> <!-- table-TEDS_structure -->
-      <td align="center">0.045</td>
-    </tr>
-    <tr>
-      <td align="center">mineru2.5</td>
-      <td align="center">90.67</td>
-      <td align="center">0.047</td>
-      <td align="center">88.46</td>
-      <td align="center">88.22</td>
-      <td align="center">92.38</td>
-      <td align="center">0.044</td>
-    </tr>
-    <!-- 新增 MonkeyOCR-pro-3B 行 -->
-    <tr>
-      <td align="center">MonkeyOCR-pro-3B</td>
-      <td align="center">88.85</td>
-      <td align="center">0.075</td>
-      <td align="center">87.25</td>
-      <td align="center">86.78</td>
-      <td align="center">90.63</td>
-      <td align="center">0.128</td>
+      <td align="center">0.130</td>
     </tr>
   </tbody>
 </table>
@@ -293,7 +283,7 @@ sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
 ```
 
 ---
-#### 方案四：基于MinerU在X86_64架构，通过CPU或Nvidia显卡推理的部署方案
+#### 方案四：基于MinerU3在X86_64架构，通过CPU或Nvidia显卡推理的部署方案
 
 项目根目录提供了 `docker-compose.yml`，定义了 `doc-parser-server`、`mineru-cpu`、`mineru-gpu` 三个服务。请根据实际环境修改 `docker-compose.yml` 中 `doc-parser-server` 的环境变量（如 `MODEL_ADDRESS`、`MINIO_SECRET_KEY` 等），然后执行：
 
