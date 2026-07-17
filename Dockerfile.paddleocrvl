@@ -20,6 +20,7 @@ RUN sed -i 's|deb.debian.org|mirrors.aliyun.com|g' /etc/apt/sources.list.d/debia
         lsof \
         vim \
         wget \
+        procps \
         && rm -rf /var/lib/apt/lists/*
 
 # 复制 paddleocrvl 专用依赖并安装

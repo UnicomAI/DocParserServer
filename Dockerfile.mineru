@@ -12,7 +12,7 @@ RUN pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ -r req
 
 # 安装调试工具
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl lsof vim wget && \
+    apt-get install -y --no-install-recommends curl lsof vim wget procps && \
     rm -rf /var/lib/apt/lists/*
 
 # 复制项目代码

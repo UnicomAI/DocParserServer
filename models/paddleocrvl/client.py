@@ -118,7 +118,9 @@ class PaddleOCRVLClient:
     @log_time
     def parse_file(self,
                    file_path: str,
-                   return_json: bool = False):
+                   return_json: bool = False,
+                   extract_image: bool = False,
+                   extract_image_content: int = 0):
         file_name = os.path.basename(file_path)
         _, file_ext = os.path.splitext(file_name)
         if(file_ext not in [".pdf", ".jpg", ".jpeg", ".png"]):
