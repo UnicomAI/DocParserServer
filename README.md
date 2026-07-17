@@ -294,58 +294,21 @@ sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
 
 ---
 #### 方案四：基于MinerU在X86_64架构，通过CPU或Nvidia显卡推理的部署方案
-##### 步骤1：拉取模型服务基础镜像
-```bash
-# x86_64 — server 镜像
-docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.4.0-20260716-amd64-server
-# CPU 推理拉取 mineru-cpu 镜像
-docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.4.0-20260716-amd64-mineru-cpu
-# GPU 推理拉取 mineru-gpu 镜像
-docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.4.0-20260716-amd64-mineru-gpu
-```
-##### 步骤2：启动模型服务容器
 
-**CPU 推理：**
+项目根目录提供了 `docker-compose.yml`，定义了 `doc-parser-server`、`mineru-cpu`、`mineru-gpu` 三个服务。请根据实际环境修改 `docker-compose.yml` 中 `doc-parser-server` 的环境变量（如 `MODEL_ADDRESS`、`MINIO_SECRET_KEY` 等），然后执行：
+
+**CPU 推理（启动 server + mineru-cpu）：**
 
 ```bash
-docker run -d \
-  --name mineru-cpu \
-  --shm-size 32g \
-  -p 30000:30000 -p 7860:7860 -p 8000:8000 -p 8002:8002 \
-  --ipc=host \
-  crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.4.0-20260716-amd64-mineru-cpu
+docker compose up -d doc-parser-server mineru-cpu
 ```
 
-**GPU 推理：**
+**GPU 推理（启动 server + mineru-gpu）：**
 
 ```bash
-docker run -d --gpus all \
-  --name mineru-gpu \
-  --shm-size 32g \
-  -p 30000:30000 -p 7860:7860 -p 8000:8000 -p 8002:8002 \
-  --ipc=host \
-  crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.4.0-20260716-amd64-mineru-gpu \
-  mineru-api --host 0.0.0.0 --port 8000
+docker compose up -d doc-parser-server mineru-gpu
 ```
 
-**启动 doc_parser_server 容器：**
-
-```bash
-docker run -d --name doc_parser \
--p 8083:8083 \
---network wanwu-net \
---restart always \
--e MODEL_TYPE=mineru \
--e MODEL_ADDRESS=http://192.168.0.1:8000 \
--e USE_CUSTOM_MINIO=false \
--e OSS_TYPE=minio \
--e MINIO_ADDRESS=minio-wanwu:9000 \
--e MINIO_ACCESS_KEY=root \
--e MINIO_SECRET_KEY=your_sk \
--e MINERU_EFFORT=medium \
--e MINERU_BACKEND=pipeline \
-crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.4.0-20260716-amd64-server
-```
 
 ---
 #### 方案五：基于MinerU在arm64架构，通过华为昇腾910B NPU推理的部署方案

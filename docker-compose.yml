@@ -18,7 +18,7 @@ services:
       - MINIO_ACCESS_KEY=root
       - MINIO_SECRET_KEY=your_sk
       - MINERU_EFFORT=medium
-      - MINERU_BACKEND=pipeline
+      - MINERU_BACKEND=hybrid-engine
 
   # ============================================================
   # MinerU — X86/amd64 CPU
