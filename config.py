@@ -18,7 +18,7 @@ class AppConfig(metaclass=SingletonMeta):
     """应用配置类，集中管理所有环境变量"""
     # 服务相关配置
     model_type: str = os.getenv("MODEL_TYPE", "mineru") #mineru, paddleocrvl
-    model_address: str = os.getenv("MODEL_ADDRESS", "http://localhost:8000/file_parse")
+    model_address: str = os.getenv("MODEL_ADDRESS", "http://localhost:8118/v1")
     doc_parser_server_port: int = int(os.getenv("DOC_PARSER_SERVER_PORT", 8083))
 
     # 文件转换服务配置
@@ -28,10 +28,32 @@ class AppConfig(metaclass=SingletonMeta):
     # 是否使用自定义MinIO服务，若为true则address配置为http://ip:port，否则为minio-wanwu:9000
     use_custom_minio: bool = os.getenv("USE_CUSTOM_MINIO", "false").strip().lower() == "true"
     minio_default_bucket: str = os.getenv("MINIO_DEFAULT_BUCKET", "rag-public")
-    bff_service_minio: str = os.getenv("BFF_SERVICE_MINIO", "http://bff-service:6668/v1/api/deploy/info")
+    bff_service_minio: str = os.getenv("BFF_SERVICE_MINIO", "http://bff-service:6667/v1/api/deploy/info")
     minio_address: str = os.getenv("MINIO_ADDRESS", "minio-wanwu:9000")
     minio_access_key: str = os.getenv("MINIO_ACCESS_KEY", "root")
     minio_secret_key: str = os.getenv("MINIO_SECRET_KEY", "your_sk")
+
+    # MinerU 3.0 配置项
+    mineru_backend: str = os.getenv("MINERU_BACKEND", "hybrid-engine")
+    mineru_lang_list: str = os.getenv("MINERU_LANG_LIST", "ch")
+    mineru_server_url: str = os.getenv("MINERU_SERVER_URL", "")
+    # 环境变量控制 effort（优先级高于入参 extract_image_content）
+    # 空字符串: 使用入参; true/1/high → effort=high; false/0/medium → effort=medium
+    mineru_effort: str = os.getenv("MINERU_EFFORT", "")
+    # PDF 解析方法（仅对 pipeline/hybrid backend 生效）
+    # auto: 自动判断; txt: 文本提取; ocr: OCR 方式
+    mineru_parse_method: str = os.getenv("MINERU_PARSE_METHOD", "auto")
+
+    # OSS 存储类型配置
+    # 可选值: minio (默认), oss
+    oss_type: str = os.getenv("OSS_TYPE", "minio").strip().lower()
+
+    # OSS 配置（当 OSS_TYPE=oss 时使用，支持私有云 OSS）
+    oss_endpoint: str = os.getenv("OSS_ENDPOINT", "oss.example.com")
+    oss_access_key: str = os.getenv("OSS_ACCESS_KEY", "")
+    oss_secret_key: str = os.getenv("OSS_SECRET_KEY", "")
+    oss_bucket: str = os.getenv("OSS_BUCKET", "doc-rag-public")
+    oss_region: str = os.getenv("OSS_REGION", "")
     version: str = os.getenv("version", "private")
 
 config = AppConfig()

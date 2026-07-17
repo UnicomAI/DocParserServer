@@ -1,0 +1,28 @@
+# ============================================================
+# DocParserServer — MinerU 专用镜像
+# 轻量版，不包含 paddleocr 依赖
+# ============================================================
+FROM python:3.10-slim
+
+WORKDIR /app
+
+# 复制 mineru 专用依赖并安装
+COPY requirements.mineru.txt .
+RUN pip install --no-cache-dir -i https://mirrors.aliyun.com/pypi/simple/ -r requirements.mineru.txt
+
+# 安装调试工具
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends curl lsof vim wget procps && \
+    rm -rf /var/lib/apt/lists/*
+
+# 复制项目代码
+COPY . .
+
+# 确保日志目录存在
+RUN mkdir -p logs data/images data/raw data/processed
+
+# 暴露服务端口
+EXPOSE 8083
+
+# 启动服务（通过 start_app.sh 兼容 mineru / paddleocrvl 两种模式）
+CMD ["bash", "start_app.sh"]

@@ -5,5 +5,4 @@ html_text==0.7.1
 marshmallow==4.1.0
 minio==7.2.16
 boto3==1.35.99
-paddleocr==3.3.1
 Requests==2.32.5

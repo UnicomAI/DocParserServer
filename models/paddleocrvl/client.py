@@ -6,7 +6,7 @@ import requests
 from models.paddleocrvl.table_process_utils import extract_text_with_tables
 from utils.file_utils import save_images_res_to_local, upload_to_oss
 from utils.log_utils import setup_logger
-from utils.minio_utils import upload_file_to_minio
+from utils.storage.factory import StorageFactory
 from utils.monitor_utils import log_time
 from config import config as app_config
 
@@ -50,9 +50,8 @@ class PaddleOCRVLClient:
                     continue
 
                 try:
-                    download_link = upload_file_to_minio(
-                        image_path
-                    )
+                    storage = StorageFactory.get_storage()
+                    download_link = storage.upload_file(image_path)
 
                     new_block_content = f'<img src="{download_link}" />'
                     item['block_content'] = new_block_content
@@ -82,7 +81,7 @@ class PaddleOCRVLClient:
             base_path = path_parts[0] + '/' if len(path_parts) > 1 else parsed_url.path
             return f"{parsed_url.scheme}://{parsed_url.netloc}{base_path}"
 
-        img_pattern = r'<div[^>]*>.*?<img src="imgs/([^"]+)"[^>]*?>.*?</div>'
+        img_pattern = r'<img\s+[^>]*?src="imgs/([^"]+)"[^>]*?>'
         matches = list(re.finditer(img_pattern, md_content))
         prefix_image_url = "https://obs-nmhhht6.cucloud.cn/doc-rag-public"
 
@@ -94,7 +93,8 @@ class PaddleOCRVLClient:
                 logger.warn(f"warning：image does not exist. {img_filename} 在目录 {image_dir} 中不存在，跳过替换")
                 continue
             try:
-                download_link = upload_file_to_minio(image_path)
+                storage = StorageFactory.get_storage()
+                download_link = storage.upload_file(image_path)
                 ocr_text = ""
                 # OCR提取文字
                 logger.info(f"extract_image_content is: {extract_image_content}")
@@ -106,7 +106,7 @@ class PaddleOCRVLClient:
                     ocr_text = re.sub(r'[\n\r]', '', ocr_text)  # 过滤换行符\n、回车符\r
                     ocr_text = ocr_text.strip()  # 先去掉标签/换行后的首尾空格
                     ocr_text = re.sub(filter_pattern, "", ocr_text)
-                new_img_tag = f'![{ocr_text}]({download_link})'
+                new_img_tag = f'![]({download_link}) {ocr_text}'
                 md_content = md_content[:match.start()] + new_img_tag + md_content[match.end():]
                 prefix_image_url = download_link
             except Exception as e:
@@ -118,19 +118,26 @@ class PaddleOCRVLClient:
     @log_time
     def parse_file(self,
                    file_path: str,
-                   return_json: bool = False):
+                   return_json: bool = False,
+                   extract_image: bool = False,
+                   extract_image_content: int = 0):
         file_name = os.path.basename(file_path)
         _, file_ext = os.path.splitext(file_name)
         if(file_ext not in [".pdf", ".jpg", ".jpeg", ".png"]):
             logger.error(f"warning：file type is not supported. 文件类型 {file_ext} 不支持，仅支持 pdf、jpg、jpeg、png 格式")
             raise ValueError(f"File type {file_ext} is not supported. Only pdf, jpg, jpeg, png are supported.")
+        # 根据文件扩展名获取 MIME 类型
+        import mimetypes
+        mime_type, _ = mimetypes.guess_type(file_path)
+        if mime_type is None:
+            mime_type = "application/octet-stream"
         try:
             with open(file_path, "rb") as f:
                 # 构造文件上传参数（用Path获取文件名，兼容不同系统路径）
                 files = {
                     "file": (file_name,  # 文件名（仅用于接口识别，不影响本地路径）
                              f,  # 文件二进制流
-                             "application/pdf"  # MIME类型，明确是PDF文件
+                             mime_type  # MIME类型，根据文件扩展名自动识别
                              )
                 }
                 data = {

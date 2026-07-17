@@ -4,9 +4,7 @@
 PORT=${DOC_PARSER_SERVER_PORT:-8083}
 SCRIPT_DIR=$(cd "$(dirname "${BASH_SOURCE[0]}")" &>/dev/null && pwd)
 APP_PATH="$SCRIPT_DIR/app.py"
-
-export MODEL_TYPE="paddleocrvl"
-export MODEL_ADDRESS="http://localhost:5000/file_parse"
+MODEL_TYPE=${MODEL_TYPE:-mineru}
 
 # 检查端口是否被占用
 PID=$(lsof -t -i:$PORT)
@@ -25,8 +23,16 @@ if [ ! -d "$LOG_DIR" ]; then
     echo "已创建日志目录: $(pwd)/$LOG_DIR"  # 显示绝对路径方便确认
 fi
 
+# 启动主服务
+echo "正在启动主服务 (MODEL_TYPE=$MODEL_TYPE)..."
+nohup python "$APP_PATH" > "$LOG_FILE" 2>&1 &
+echo "主服务已启动，日志输出到 $LOG_FILE"
 
-# 在后台启动应用
-echo "正在后台启动应用..."
-nohup python $APP_PATH > "$LOG_FILE" 2>&1 &
-echo "应用已在后台启动，日志输出到 app_start.log"
+# 如果是 paddleocrvl，额外启动 paddleocrvl 推理服务（5000 端口）
+if [ "$MODEL_TYPE" = "paddleocrvl" ]; then
+    PADDLE_DIR="$SCRIPT_DIR/models/paddleocrvl"
+    PADDLE_LOG_FILE="$LOG_DIR/paddleocrvl_server.log"
+    echo "检测到 MODEL_TYPE=paddleocrvl，正在启动 PaddleOCRVL 推理服务..."
+    cd "$PADDLE_DIR" && nohup bash start_flask.sh > "$PADDLE_LOG_FILE" 2>&1 &
+    echo "PaddleOCRVL 推理服务已启动，日志输出到 $PADDLE_LOG_FILE"
+fi

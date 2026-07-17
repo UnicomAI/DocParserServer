@@ -1,0 +1,11 @@
+# 排除本地开发文件
+.git
+.gitignore
+__pycache__
+*.pyc
+*.pyo
+logs/*
+.DS_Store
+.vscode
+.idea
+*.md
