@@ -1,8 +1,9 @@
+import json
 import os
 import traceback
 import uuid
 
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from marshmallow import Schema, fields, ValidationError
 
@@ -35,7 +36,10 @@ def before_request():
 def health_check():
     logger.info("test log")
     """服务健康检查接口"""
-    return jsonify({"code": "200", "status": "healthy", "service": "doc_parser_server"})
+    return Response(
+        json.dumps({"code": "200", "status": "healthy", "service": "doc_parser_server"}, ensure_ascii=False),
+        content_type='application/json; charset=utf-8'
+    )
 
 def api_response(code: str, status: str, message: str, content: str = "", json_content: str = "", **kwargs):
     res_dict = {
@@ -46,10 +50,13 @@ def api_response(code: str, status: str, message: str, content: str = "", json_c
         "json_content": json_content,
         "trace_id": get_trace_id(),
         "version": config.version,
-        "prefix_image_url": "https://obs-nmhhht6.cucloud.cn/doc-rag-public"
+        "prefix_image_url": "https://obs-nmhhht6.cucloud.cn/doc-rag-public/"
     }
     res_dict.update(kwargs)
-    return jsonify(res_dict)
+    return Response(
+        json.dumps(res_dict, ensure_ascii=False),
+        content_type='application/json; charset=utf-8'
+    )
 
 @app.route('/rag/model_parser_file', methods=['POST'])
 @log_time
@@ -111,15 +118,20 @@ def model_parser_file():
             )
         logger.info(f"File downloaded and saved to {file_path}")
         # 根据配置调模型
-        # 转换为PDF
-        file_path = convert_to_pdf(file_path)
-        if not file_path.lower().endswith(MODEL_FILE_EXTENSIONS):
-            return api_response(
-                code="500",
-                status="failed",
-                message=f"File type is supported, but convert to model input(pdf/image) failed. Check file converter service. File_name: {file_name}",
-                content=""
-            )
+        # MinerU 3.0 原生支持 pdf/图片/docx/pptx/xlsx，不需要转换
+        if config.model_type != "mineru":
+            file_path = convert_to_pdf(file_path)
+            if not file_path.lower().endswith(MODEL_FILE_EXTENSIONS):
+                return api_response(
+                    code="500",
+                    status="failed",
+                    message=f"File type is supported, but convert to model input(pdf/image) failed. Check file converter service. File_name: {file_name}",
+                    content=""
+                )
+        # 如果是图片类型，强制关闭 extract_image（图片本身无需再提取图片）
+        if file_path.lower().endswith(('.png', '.jpg', '.jpeg', '.webp', '.gif')):
+            extract_image = False
+            logger.info(f"Image file detected, force extract_image=False")
         logger.info("start to parse file: %s", file_name)
         # 无模型mock返回测试
         # response = {
@@ -130,7 +142,7 @@ def model_parser_file():
         #         }
         #     }
         # }
-        response = client.parse_file(file_path, return_json)
+        response = client.parse_file(file_path, return_json, extract_image, extract_image_content)
         logger.info(f"parse done! started to post process file: {file_path}")
         md_content, json_content, prefix_image_url = client.post_process(extract_image=extract_image,
                             extract_image_content=extract_image_content,

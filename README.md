@@ -25,14 +25,14 @@
 </div>
 
 
-&emsp;&emsp;**万悟文档解析服务**是一款面向**企业级**场景的通用文档解析服务，通过引入AI能力和多种业界领先的视觉文档解析模型，精准、高效的将各类文档转化为 Markdown 结构化标准格式，支持提取文档中的多模态元素，例如表格、公式、图片等，将复杂多模态知识转换为结构化的表示有助于大语言模型对这些多模态知识的理解。借助该服务，预先将各类非结构化文档提取内容成文本信息后，再把结构化的文本信息写入知识库进行向量索引构建，可以显著提升RAG知识问答、智能体知识库节点等知识问答场景的效果。该服务可独立使用，也可作为模型服务配置接入**元景万悟智能体平台**([github项目地址](https://github.com/UnicomAI/wanwu/edit/main/README_CN.md))供知识库文档解析使用。目前服务已接入PaddleOCR-VL、MinerU等业界主流模型，并在业界首发了PaddleOCR-VL、MinerU模型的昇腾910B部署镜像，在原生模型对pdf和图片文件基础上扩展了对doc, docx, ppt, pptx等文档的支持。未来将提供更多文档解析模型增益能力，敬请期待！
+&emsp;&emsp;**万悟文档解析服务**是一款面向企业级场景的通用文档解析服务，通过部署此服务统一了不同模型服务协议标准，可支持将PaddleOCR、MinerU等多款文档解析模型私有化部署，并作为OCR模型在万悟智能体开发平台的模型服务中配置使用。本服务集成了多种业界领先的视觉文档解析模型，可精准、高效的将各类文档转化为 Markdown 结构化标准格式，支持提取文档中的多模态元素，例如表格、公式、图片等，将复杂多模态知识转换为结构化的表示有助于大语言模型对这些多模态知识的理解。借助该服务，预先将各类非结构化文档提取内容成文本信息后，再把结构化的文本信息写入知识库进行向量索引构建，可以显著提升RAG知识库文档解析效果。本模型服务在原生模型基础上提供了昇腾910B部署方案，并在原生模型文件类型支持上扩展了对doc, docx, ppt, pptx等多种文档的支持。未来将提供更多文档解析模型增益能力，敬请期待！
 
 ------
 
 
 ## 📢近期更新
+🔥 **2026.7.17**: 接入MinerU 3.4.4版本文档解析能力（基于英伟达系列显卡，华为910B适配中，敬请期待），其MinerU2.5-Pro解析效果为OmniDocBench1.6 SOTA模型，同时简化镜像部署方式。
 
-🔥 **2026.2.6**: 新增基于PaddleOCR-VL 1.5的文档解析推理任务（基于英伟达系列显卡，华为910B适配中，敬请期待），跨页表格自动聚合，JSON结构化数据block_content字段结构化展示。
 
 
 ------
@@ -70,9 +70,9 @@
   
 - **多种运行环境**：支持纯CPU环境运行，并支持GPU(CUDA)/NPU(mineru已适配)加速
 
-### OmniDocBench 1.5评测集效果评测
+### OmniDocBench 1.6评测集效果评测
 
-元景万悟高精度文档解析服务在权威开源数据集OmniDocBench 1.5上完成性能指标评测，综合指标**与PaddleOCR-VL模型基本持平**（其中公式指标高出0.4%），**综合指标和各项指标均超过MinerU2.5**，解析精度达到业界领先水平。
+根据权威开源数据集OmniDocBench 1.6上性能指标，**元景万悟文档解析服务已接入最新SOTA模型MinerU2.5-pro**，在MinerU 3.4.4版本中使用，解析精度达到业界领先水平。
 
 <table align="center" border="1" cellpadding="6" cellspacing="0">
   <thead>
@@ -98,13 +98,22 @@
   </thead>
   <tbody>
     <tr>
+      <td align="center"><strong>MinerU2.5-pro</strong></td>
+      <td align="center">95.75</td>
+      <td align="center">0.036</td>
+      <td align="center">97.45</td>
+      <td align="center">93.42</td>
+      <td align="center">95.92</td>
+      <td align="center">0.120</td>
+    </tr>
+    <tr>
       <td align="center"><strong>联通元景万悟文档解析服务</strong></td> <!-- 加粗 -->
       <td align="center">94.53</td>
       <td align="center">0.034</td>
       <td align="center">94.49</td>
       <td align="center">91.65</td> <!-- table-TEDS -->
       <td align="center">94.66</td> <!-- table-TEDS_structure -->
-      <td align="center">0.042</td>
+      <td align="center">0.130</td>
     </tr>
     <tr>
       <td align="center">paddleOCR-VL</td>
@@ -113,7 +122,7 @@
       <td align="center">91.22</td>
       <td align="center">90.89</td>
       <td align="center">94.76</td>
-      <td align="center">0.043</td>
+      <td align="center">0.130</td>
     </tr>
     <tr>
       <td align="center">联通元景万悟文档解析910B</td>
@@ -122,26 +131,7 @@
       <td align="center">91.51</td>
       <td align="center">89.96</td> <!-- table-TEDS -->
       <td align="center">93.50</td> <!-- table-TEDS_structure -->
-      <td align="center">0.045</td>
-    </tr>
-    <tr>
-      <td align="center">mineru2.5</td>
-      <td align="center">90.67</td>
-      <td align="center">0.047</td>
-      <td align="center">88.46</td>
-      <td align="center">88.22</td>
-      <td align="center">92.38</td>
-      <td align="center">0.044</td>
-    </tr>
-    <!-- 新增 MonkeyOCR-pro-3B 行 -->
-    <tr>
-      <td align="center">MonkeyOCR-pro-3B</td>
-      <td align="center">88.85</td>
-      <td align="center">0.075</td>
-      <td align="center">87.25</td>
-      <td align="center">86.78</td>
-      <td align="center">90.63</td>
-      <td align="center">0.128</td>
+      <td align="center">0.130</td>
     </tr>
   </tbody>
 </table>
@@ -212,7 +202,6 @@ docker run -d --name doc_parser \
 -e MINIO_ACCESS_KEY="root" \
 -e MINIO_SECRET_KEY="your_sk" \
 -e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \  #如果不与万悟平台集成使用服务，则删除本行
--e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \  #如果不使用扩展功能1：多类型文档解析，则删除本行
 crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251112-amd64-paddle \
 sh -c "chmod +x /app/DocParserServer-main/docker_start_app.sh && /app/DocParserServer-main/docker_start_app.sh"
 # 启动paddleocrvl容器
@@ -230,12 +219,12 @@ docker run \
 ##### 步骤1：拉取模型服务基础镜像
 ```bash
 # arm64
-docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.3-20260130-arm64-paddle-910b
+docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.4-20260603-arm64-910b
 ```
 ##### 步骤2：启动模型服务容器
 ```bash
 # 启动doc_parser_server容器
-docker run --rm \
+docker run --itd \
     --name doc_parser \
     -p 8083:8083 \
     --network wanwu-net \  #如果不与万悟平台集成使用服务，则删除本行
@@ -244,10 +233,9 @@ docker run --rm \
     -e MINIO_ADDRESS="minio-wanwu:9000" \
     -e MINIO_ACCESS_KEY="root" \
     -e MINIO_SECRET_KEY="your_sk" \
-    -e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \  #如果不与万悟平台集成使用服务，则删除本行
-    -e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \  #如果不使用扩展功能1：多类型文档解析，则删除本行
+    -e BFF_SERVICE_MINIO="http://bff-service:6667/v1/api/deploy/info" \  #如果不与万悟平台集成使用服务，则删除本行
     --shm-size=10g \
-    --device /dev/davinci0 \   # 替换成你需要的卡
+    --device /dev/davinci0 \   # 替换成您指定的显卡序号
     --device /dev/davinci_manager \
     --device /dev/devmm_svm \
     --device /dev/hisi_hdc \
@@ -258,6 +246,13 @@ docker run --rm \
     -v /usr/local/Ascend/driver/version.info:/usr/local/Ascend/driver/version.info \
     -v /etc/ascend_install.info:/etc/ascend_install.info \
     -v /root/.cache:/root/.cache \
+    -v ~/doc_parser/uploads:/app/DocParserServer/models/paddleocrvl/uploads \
+    -v ~/doc_parser/output:/app/DocParserServer/models/paddleocrvl/output \
+    -v ~/doc_parser/images:/app/DocParserServer/data/images \
+    -v ~/doc_parser/logs:/app/DocParserServer/logs \
+    -v ~/doc_parser/flask_server.log:/app/DocParserServer/models/paddleocrvl/flask_server.log \
+    -v ~/doc_parser/flask_service.log:/app/DocParserServer/models/paddleocrvl/flask_service.log \
+    -v ~/doc_parser/paddleocr_vllm_npu4.log:/workspace/paddleocr_vllm_npu4.log \
     crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.3-20260130-arm64-paddle-910b \
     bash -c "chmod +x /app/docker_start_all.sh && /app/docker_start_all.sh"
 ```
@@ -281,35 +276,29 @@ docker run -d --name doc_parser \
 -e MINIO_ADDRESS="minio-wanwu:9000" \
 -e MINIO_ACCESS_KEY="root" \
 -e MINIO_SECRET_KEY="your_sk" \
--e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \
+-e BFF_SERVICE_MINIO="http://bff-service:6667/v1/api/deploy/info" \
 -e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \
 crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-arm64 \
 sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
 ```
 
 ---
-#### 方案四：基于MinerU在X86_64架构，通过CPU或Nvidia显卡推理的部署方案
-##### 步骤1：拉取模型服务基础镜像
+#### 方案四：基于MinerU3在X86_64架构，通过CPU或Nvidia显卡推理的部署方案
+
+项目根目录提供了 `docker-compose.yml`，定义了 `doc-parser-server`、`mineru-cpu`、`mineru-gpu` 三个服务。请根据实际环境修改 `docker-compose.yml` 中 `doc-parser-server` 的环境变量（如 `MODEL_ADDRESS`、`MINIO_SECRET_KEY` 等），然后执行：
+
+**CPU 推理（启动 server + mineru-cpu）：**
+
 ```bash
-# x86_64
-docker pull crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-amd64
+docker compose up -d doc-parser-server mineru-cpu
 ```
-##### 步骤2：启动模型服务容器
+
+**GPU 推理（启动 server + mineru-gpu）：**
+
 ```bash
-# BFF_SERVICE_MINIO依赖万悟平台的部署，部署后可以获取到这个接口
-docker run -d --name doc_parser \
--p 8083:8083 \
---network wanwu-net \
---restart always \
--e USE_CUSTOM_MINIO="false" \
--e MINIO_ADDRESS="minio-wanwu:9000" \
--e MINIO_ACCESS_KEY="root" \
--e MINIO_SECRET_KEY="your_sk" \
--e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \
--e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \
-crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251016-amd64 \
-sh -c "chmod +x /app/start_all.sh && /app/start_all.sh"
+docker compose up -d doc-parser-server mineru-gpu
 ```
+
 
 ---
 #### 方案五：基于MinerU在arm64架构，通过华为昇腾910B NPU推理的部署方案
@@ -341,7 +330,7 @@ docker run -d \
   -e MINIO_ADDRESS="minio-wanwu:9000" \
   -e MINIO_ACCESS_KEY="root" \
   -e MINIO_SECRET_KEY="V5EMfXAuCCx3JkjTG4jQ" \
-  -e BFF_SERVICE_MINIO="http://bff-service:6668/v1/api/deploy/info" \
+  -e BFF_SERVICE_MINIO="http://bff-service:6667/v1/api/deploy/info" \
   -e STIRLING_ADDRESS="http://192.168.0.21:8080/api/v1/convert/file/pdf" \
   crpi-6pj79y7ddzdpexs8.cn-hangzhou.personal.cr.aliyuncs.com/wanwulite/doc_parser_server:1.2-20251022-arm64-910b \
   bash /app/start_all.sh
@@ -414,7 +403,7 @@ docker run -d \
 | MINIO_ADDRESS     | MinIO服务的地址，通过万悟使用本服务时复用万悟的minio地址。默认加入wanwu-net网络，通过minio-wanwu:9000访问，无需修改。自定义minio服务填写ip:port（不要加http://）。 |
 | MINIO_ACCESS_KEY  | MinIO服务的ak，默认root。                                                                                           |
 | MINIO_SECRET_KEY  | MinIO服务的sk，<span style="color:red;">无有效默认值，必须自行填写</span>。                                                    |
-| BFF_SERVICE_MINIO | 万悟MinIO服务api地址，用于获取图片在MinIO地址，默认为：http://bff-service:6668/v1/api/deploy/info。通常无需修改，除非您在部署万悟时修改了访问MinIO的链接。                                  |
+| BFF_SERVICE_MINIO | 万悟MinIO服务api地址，用于获取图片在MinIO地址，默认为：http://bff-service:6667/v1/api/deploy/info。通常无需修改，除非您在部署万悟时修改了访问MinIO的链接。                                  |
 | STIRLING_ADDRESS  | 仅解析doc\docx\ppt\pptx文档需要，否则忽略此参数。参数赋值使用本机ip+映射的端口默认8080。                                             |
 
 

@@ -4,7 +4,7 @@ import re
 import requests
 
 from utils.log_utils import setup_logger
-from utils.minio_utils import upload_file_to_minio
+from utils.storage.factory import StorageFactory
 
 logger = setup_logger(__name__, './logs/app.log')
 
@@ -74,8 +74,9 @@ def extract_images_from_md(md_content, image_dir):
             image_path = os.path.join(os.path.dirname(image_dir), image_link)
             logger.info(f"extracting images from md content. image_path: {image_path}")
             if os.path.exists(image_path):
-                # 上传图片到 OS
-                download_link = upload_file_to_minio(image_path)
+                # 上传图片到 OSS
+                storage = StorageFactory.get_storage()
+                download_link = storage.upload_file(image_path)
                 if download_link:
                     md_content = md_content.replace(image_link, download_link)
                 else:

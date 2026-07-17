@@ -2,7 +2,12 @@
 FLASK_PORT=5000
 LOG_FILE="flask_service.log"
 PY_CMD=python3
-APP=flask_service.py
+APP=app.py
+
+export LC_ALL=zh_CN.UTF-8
+export LANG=zh_CN.UTF-8
+export LANGUAGE=zh_CN.UTF-8
+export PYTHONIOENCODING=utf-8
 
 # 检查端口占用并优雅停止
 PID=$(lsof -i :$FLASK_PORT | grep LISTEN | awk '{print $2}')

@@ -53,9 +53,9 @@ def upload_file_to_minio(file_path, overwrite_file_name=None):
         else:
             response = requests.get(bff_service_minio)
             response_data = response.json()
-            endpoint = response_data['data']['webBaseUrl']
+            endpoint = response_data['data']['webBaseUrl'].rstrip('/')
             # http://192.168.0.21:8081/minio/download/api/
-            download_link = f"{endpoint}{bucket_name}/{file_name}"
+            download_link = f"{endpoint}/{bucket_name}/{file_name}"
         logger.info(f"File uploaded successfully, download link: {download_link}")
         return download_link
     except S3Error as e:
