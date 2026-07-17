@@ -9,11 +9,11 @@ import io
 import sys
 
 
-config_dir = "/app/DocParserServer"
+config_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if config_dir not in sys.path:
     sys.path.append(config_dir)
 from config import config
-logger_dir = "/app/DocParserServer/utils"
+logger_dir = os.path.join(config_dir, "utils")
 if logger_dir not in sys.path:
     sys.path.append(logger_dir)
 from log_utils import setup_logger
